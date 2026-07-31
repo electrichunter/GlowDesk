@@ -4,7 +4,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     PROJECT_NAME: str = "GlowDesk Core API"
     VERSION: str = "1.0.0"
-    API_V1_STR: str = "/api"
+    API_V1_STR: str = "/api/v1"
+    APP_ENV: str = os.getenv("APP_ENV", "development")
 
     # Database
     DB_HOST: str = os.getenv("DB_HOST", "localhost")
@@ -15,6 +16,8 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
+        if self.APP_ENV == "test":
+            return "sqlite:///:memory:"
         return f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     # JWT Security

@@ -1,0 +1,20 @@
+name: GlowDesk CD Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker Images
+        run: |
+          docker compose build
+
+      - name: Log Deployment Status
+        run: |
+          echo "Build successful. Deployment target ready."
