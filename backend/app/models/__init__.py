@@ -1,0 +1,7 @@
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.models.role import Role
+from app.models.service import Service
+from app.models.appointment import Appointment
+from app.models.customer import Customer
+from app.models.post import Post

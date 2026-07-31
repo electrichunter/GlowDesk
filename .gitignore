@@ -1,0 +1,76 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Node.js / Frontend
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+**/out/
+build/
+**/build/
+dist/
+**/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+**/.vercel/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Python / Backend
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+**/env/
+venv/
+**/venv/
+ENV/
+**/ENV/
+.venv/
+**/.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+**/.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# DevOps & Docker data persistent volumes (local dev)
+devops/data/
+**/data/
+devops/mysql/data/
+devops/minio/data/
+devops/redis/data/
+
+# IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+

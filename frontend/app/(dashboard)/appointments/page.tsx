@@ -1,0 +1,403 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import AppointmentCard from "@/components/dashboard/AppointmentCard";
+import type { Appointment, AppointmentStatus, Customer, Service } from "@/lib/types";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+
+export default function AppointmentsPage() {
+  const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | AppointmentStatus>("all");
+  const [staffFilter, setStaffFilter] = useState<string>("all");
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        const { apiRequest } = await import("@/lib/api-client");
+        
+        // 1. MySQL Appointments
+        const { data: dbApts } = await apiRequest<any[]>("/appointments");
+        if (dbApts && Array.isArray(dbApts)) {
+          setAppointments(
+            dbApts.map((a) => ({
+              id: a.id,
+              tenant_id: a.tenant_id,
+              customer_id: a.customer_id,
+              service_id: a.service_id,
+              start_time: a.start_time || `${a.appointment_date}T10:00:00Z`,
+              end_time: a.end_time || `${a.appointment_date}T11:00:00Z`,
+              status: (a.status || "confirmed") as AppointmentStatus,
+              notes: a.notes || undefined,
+              created_at: a.created_at || new Date().toISOString(),
+              customer: {
+                id: a.customer_id || "cust-1",
+                tenant_id: a.tenant_id || "global",
+                full_name: a.customer_name,
+                phone: a.customer_phone,
+                created_at: a.created_at || new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+              service: {
+                id: a.service_id || "svc-1",
+                tenant_id: a.tenant_id || "global",
+                name: a.service_name || "Genel Hizmet",
+                duration_minutes: 30,
+                price: parseFloat(a.total_price || 0),
+                created_at: a.created_at || new Date().toISOString(),
+              },
+            }))
+          );
+        }
+
+        // 2. MySQL Customers
+        const { data: dbCusts } = await apiRequest<any[]>("/customers");
+        if (dbCusts && Array.isArray(dbCusts)) {
+          setCustomers(
+            dbCusts.map((c) => ({
+              id: c.id,
+              tenant_id: c.tenant_id || "global",
+              full_name: c.full_name,
+              phone: c.phone || undefined,
+              email: c.email || undefined,
+              created_at: c.created_at || new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }))
+          );
+        }
+
+        // 3. MySQL Services
+        const { data: dbSvcs } = await apiRequest<any[]>("/services");
+        if (dbSvcs && Array.isArray(dbSvcs)) {
+          setServices(
+            dbSvcs.map((s) => ({
+              id: s.id,
+              tenant_id: s.tenant_id || "global",
+              name: s.name,
+              price: parseFloat(s.price || 0),
+              duration_minutes: s.duration_minutes || 30,
+              created_at: s.created_at || new Date().toISOString(),
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Appointments fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  // Form State
+  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [selectedServiceId, setSelectedServiceId] = useState("");
+  const [selectedWorkstation, setSelectedWorkstation] = useState("1. Koltuk (Ahmet Usta)");
+  const [appointmentDate, setAppointmentDate] = useState(new Date().toISOString().split("T")[0]);
+  const [appointmentTime, setAppointmentTime] = useState("10:00");
+  const [notes, setNotes] = useState("");
+
+  const handleAddAppointment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const customer = customers.find(c => c.id === selectedCustomerId);
+    const service = services.find(s => s.id === selectedServiceId);
+
+    try {
+      const { apiRequest } = await import("@/lib/api-client");
+      const { data: newApt, error } = await apiRequest<any>("/appointments/", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: "tenant-demo-1",
+          customer_name: customer?.full_name || "Müşteri",
+          customer_phone: customer?.phone || "+90 555 000 0000",
+          appointment_date: appointmentDate,
+          start_time: `${appointmentTime}:00`,
+          end_time: "11:00:00",
+          notes: `${notes} (${selectedWorkstation})`,
+          total_price: service?.price || 0.0,
+        }),
+      });
+
+      if (error) {
+        alert(`❌ Hata: ${error}`);
+        return;
+      }
+
+      if (newApt) {
+        const formatted: Appointment = {
+          id: newApt.id,
+          tenant_id: newApt.tenant_id,
+          customer_id: selectedCustomerId,
+          service_id: selectedServiceId,
+          start_time: `${appointmentDate}T${appointmentTime}:00Z`,
+          end_time: `${appointmentDate}T11:00:00Z`,
+          status: "confirmed",
+          notes: `${notes} (${selectedWorkstation})`,
+          created_at: new Date().toISOString(),
+          customer,
+          service,
+        };
+
+        setAppointments((prev) => [formatted, ...prev]);
+        setShowAddModal(false);
+        setNotes("");
+      }
+    } catch (err) {
+      console.error("Appointment save error:", err);
+    }
+  };
+
+  const filteredAppointments = appointments.filter((a) => {
+    const matchesStatus = statusFilter === "all" || a.status === statusFilter;
+    const matchesStaff = staffFilter === "all" || a.notes?.includes(staffFilter);
+    return matchesStatus && matchesStaff;
+  });
+
+  return (
+    <div className="space-y-8 animate-fade-in font-sans">
+      
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold font-display text-[#1E1B4B]">Personel Bazlı Dinamik Takvim</h1>
+          <p className="text-slate-500 text-xs mt-1">Personel ve koltuk bazında randevu takvimi, çalışma akışı ve doluluk oranları.</p>
+        </div>
+        <button 
+          onClick={() => setShowAddModal(true)} 
+          className="btn-primary text-xs py-2.5 px-4 shadow-sm"
+        >
+          ➕ Yeni Randevu Ekle
+        </button>
+      </div>
+
+      {/* Personel Bazlı Doluluk & Performans Kartları */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="brand-card p-5 bg-white border-l-4 border-l-cyan-500 space-y-1">
+          <span className="text-xs font-bold text-slate-400 uppercase">1. Koltuk (Ahmet Usta)</span>
+          <div className="text-2xl font-black text-[#1E1B4B]">
+            {appointments.filter(a => a.notes?.includes("1. Koltuk") || !a.notes).length} Seans
+          </div>
+          <span className="text-[10px] text-emerald-600 font-bold">Gerçekleşen Randevular</span>
+        </div>
+
+        <div className="brand-card p-5 bg-white border-l-4 border-l-purple-500 space-y-1">
+          <span className="text-xs font-bold text-slate-400 uppercase">2. Koltuk (Mehmet Kalfa)</span>
+          <div className="text-2xl font-black text-[#1E1B4B]">
+            {appointments.filter(a => a.notes?.includes("2. Koltuk")).length} Seans
+          </div>
+          <span className="text-[10px] text-cyan-600 font-bold">Gerçekleşen Randevular</span>
+        </div>
+
+        <div className="brand-card p-5 bg-white border-l-4 border-l-amber-500 space-y-1">
+          <span className="text-xs font-bold text-slate-400 uppercase">VİP Bakım Odası</span>
+          <div className="text-2xl font-black text-[#1E1B4B]">
+            {appointments.filter(a => a.notes?.includes("VİP")).length} Seans
+          </div>
+          <span className="text-[10px] text-amber-600 font-bold">Gerçekleşen Randevular</span>
+        </div>
+      </div>
+
+      {/* Randevu Filtreleme Barı */}
+      <div className="brand-card p-4 space-y-3 bg-white">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          {/* Status Filters */}
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { key: "all", label: `Tümü (${appointments.length})` },
+              { key: "confirmed", label: `Onaylandı (${appointments.filter(a => a.status === "confirmed").length})` },
+              { key: "pending", label: `Bekliyor (${appointments.filter(a => a.status === "pending").length})` },
+              { key: "completed", label: `Tamamlandı (${appointments.filter(a => a.status === "completed").length})` },
+              { key: "no_show", label: `No-Show (${appointments.filter(a => a.status === "no_show").length})` },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setStatusFilter(tab.key as any)}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  statusFilter === tab.key
+                    ? "bg-[#1E1B4B] text-white shadow-xs"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Staff Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500">Koltuk/Personel:</span>
+            <select
+              value={staffFilter}
+              onChange={(e) => setStaffFilter(e.target.value)}
+              className="input-dark bg-white py-1 px-3 text-xs w-auto"
+            >
+              <option value="all">Tüm Personeller</option>
+              <option value="1. Koltuk">1. Koltuk (Ahmet Usta)</option>
+              <option value="2. Koltuk">2. Koltuk (Mehmet Kalfa)</option>
+              <option value="VİP">VİP Bakım Odası</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Randevu Kartları Akışı */}
+      <div className="space-y-3">
+        {filteredAppointments.length > 0 ? (
+          filteredAppointments.map((apt) => (
+            <AppointmentCard 
+              key={apt.id} 
+              appointment={apt} 
+              onUpdateStatus={(id, status) => {
+                const updated = appointments.map(a => a.id === id ? { ...a, status } : a);
+                setAppointments(updated);
+                localStorage.setItem("glowdesk_appointments", JSON.stringify(updated));
+              }}
+            />
+          ))
+        ) : (
+          <div className="brand-card p-12 text-center text-slate-500 space-y-2 bg-white">
+            <p className="text-3xl">📅</p>
+            <p className="text-sm font-bold text-[#1E1B4B]">Henüz Randevu Bulunmuyor</p>
+            <p className="text-xs">Sisteme kaydolan yeni randevular burada listelenecektir.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Yeni Randevu Ekleme Modalı */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in-up">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-extrabold text-[#1E1B4B] font-display text-lg">Yeni Randevu Kaydı</h3>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="text-slate-400 hover:text-slate-700 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddAppointment} className="p-6 space-y-4">
+              {/* Müşteri Seçimi */}
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">Müşteri Seçin</label>
+                {customers.length > 0 ? (
+                  <select 
+                    value={selectedCustomerId}
+                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    className="input-dark bg-white"
+                  >
+                    <option value="">-- Müşteri Seçiniz --</option>
+                    {customers.map(c => (
+                      <option key={c.id} value={c.id}>{c.full_name} ({c.phone || "Telefon yok"})</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                    ⚠️ Kayıtlı müşteri yok. Önce &apos;Müşteriler&apos; sayfasından müşteri ekleyin veya manuel isim girin.
+                  </div>
+                )}
+              </div>
+
+              {/* Hizmet Seçimi */}
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">Hizmet Seçin</label>
+                {services.length > 0 ? (
+                  <select 
+                    value={selectedServiceId}
+                    onChange={(e) => setSelectedServiceId(e.target.value)}
+                    className="input-dark bg-white"
+                  >
+                    <option value="">-- Hizmet Seçiniz --</option>
+                    {services.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} - ₺{s.price}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                    ⚠️ Kayıtlı hizmet yok. Önce &apos;Hizmetler&apos; sayfasından hizmet tanımlayın.
+                  </div>
+                )}
+              </div>
+
+              {/* Koltuk / Personel Seçimi */}
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">Koltuk / Personel Seçin</label>
+                <select 
+                  value={selectedWorkstation}
+                  onChange={(e) => setSelectedWorkstation(e.target.value)}
+                  className="input-dark bg-white"
+                >
+                  <option value="1. Koltuk (Ahmet Usta)">1. Koltuk (Ahmet Usta)</option>
+                  <option value="2. Koltuk (Mehmet Kalfa)">2. Koltuk (Mehmet Kalfa)</option>
+                  <option value="VİP Bakım Odası">VİP Bakım Odası</option>
+                </select>
+              </div>
+
+              {/* Tarih ve Saat */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">Tarih</label>
+                  <input
+                    type="date"
+                    required
+                    value={appointmentDate}
+                    onChange={(e) => setAppointmentDate(e.target.value)}
+                    className="input-dark"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">Saat</label>
+                  <input
+                    type="time"
+                    required
+                    value={appointmentTime}
+                    onChange={(e) => setAppointmentTime(e.target.value)}
+                    className="input-dark"
+                  />
+                </div>
+              </div>
+
+              {/* Notlar */}
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">Notlar (İsteğe Bağlı)</label>
+                <textarea
+                  placeholder="Randevu notu..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="input-dark h-20 resize-none"
+                />
+              </div>
+
+              {/* Kaydet & İptal */}
+              <div className="flex gap-2 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="w-1/3 btn-secondary justify-center text-xs py-3"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  className="w-2/3 btn-primary justify-center text-xs py-3 shadow-md"
+                >
+                  Randevuyu Kaydet
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
