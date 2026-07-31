@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glowdesk-frontend
+  namespace: glowdesk-prod
+  labels:
+    app: glowdesk-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: glowdesk-frontend
+  template:
+    metadata:
+      labels:
+        app: glowdesk-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: glowdesk/frontend:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glowdesk-frontend
+  namespace: glowdesk-prod
+spec:
+  selector:
+    app: glowdesk-frontend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000

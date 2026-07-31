@@ -9,7 +9,7 @@ from app.core.exceptions import GlowDeskException, glowdesk_exception_handler, g
 from app.middleware.rate_limiter import limiter
 from app.db.session import engine, Base
 from app.api import auth, appointments, storage, tenants, users, staff, invoices, customers, services, blog, roles
-from app.api.v1 import health, waitlist, notifications, chat
+from app.api.v1 import health, waitlist, notifications, chat, payments
 import app.models  # Register all models with Base
 
 # Setup structured logging
@@ -69,6 +69,7 @@ app.include_router(health.router, prefix=api_prefix)
 app.include_router(waitlist.router, prefix=api_prefix)
 app.include_router(notifications.router, prefix=api_prefix)
 app.include_router(chat.router, prefix=api_prefix)
+app.include_router(payments.router, prefix=api_prefix)
 
 @app.get("/")
 def root():

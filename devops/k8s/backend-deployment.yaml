@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glowdesk-backend
+  namespace: glowdesk-prod
+  labels:
+    app: glowdesk-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: glowdesk-backend
+  template:
+    metadata:
+      labels:
+        app: glowdesk-backend
+    spec:
+      containers:
+        - name: backend
+          image: glowdesk/backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: APP_ENV
+              value: "production"
+            - name: DB_HOST
+              value: "glowdesk-mysql"
+            - name: REDIS_URL
+              value: "redis://glowdesk-redis:6379/0"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glowdesk-backend
+  namespace: glowdesk-prod
+spec:
+  selector:
+    app: glowdesk-backend
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
