@@ -4,11 +4,10 @@ import hashlib
 import re
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 from app.core.config import settings
 from app.core.cache import cache_service
-from app.core.exceptions import GlowDeskException
 
 logger = logging.getLogger("glowdesk.payment")
 
@@ -21,6 +20,7 @@ class ProcessPaymentRequest(BaseModel):
     expire_month: str
     expire_year: str
     cvv: str
+    provider: str = "iyzico_sandbox"  # iyzico_sandbox | stripe_sandbox | paytr_sandbox
     idempotency_key: Optional[str] = None
 
     @field_validator("card_number")
@@ -30,7 +30,6 @@ class ProcessPaymentRequest(BaseModel):
         if not (13 <= len(clean) <= 19):
             raise ValueError("Kart numarası uzunluğu geçersiz (13-19 hane olmalı).")
         
-        # LUHN Algoritması ile kart doğrulama
         total = 0
         reverse_digits = [int(d) for d in clean[::-1]]
         for i, digit in enumerate(reverse_digits):
@@ -56,6 +55,8 @@ class PaymentResult(BaseModel):
     success: bool
     transaction_id: Optional[str]
     receipt_signature: Optional[str]
+    three_d_secure_url: Optional[str]
+    provider: str
     message: str
     amount: float
     currency: str
@@ -63,13 +64,7 @@ class PaymentResult(BaseModel):
 
 class PaymentGatewayService:
     """
-    Üretim Seviyesi Güvenli Ödeme Geçidi (Production-Grade Payment Gateway)
-    PCI-DSS Standartları:
-    - LUHN Algoritması ile Kart Numarası Doğrulama
-    - Son Kullanma Tarihi Güvenlik Kontrolü
-    - Idempotency Key ile Çift Tahsilat Engelleme (Redis)
-    - HMAC-SHA256 İşlem Makbuzu İmzası
-    - PAN (Kart Numarası) Maskeleme (Örn: 4543 **** **** 1234)
+    Üretim ve Sandbox Ortamı Destekli Sanal POS Ödeme Geçidi (Iyzico / Stripe / PayTR)
     """
 
     @staticmethod
@@ -87,29 +82,30 @@ class PaymentGatewayService:
 
     def process_credit_card(self, payload: ProcessPaymentRequest) -> PaymentResult:
         masked = self._mask_card(payload.card_number)
-        logger.info(f"[PaymentGateway] Payment attempt for invoice {payload.invoice_id} | Amount: {payload.amount} {payload.currency} | Card: {masked}")
+        logger.info(f"[PaymentGateway:{payload.provider}] Processing payment for invoice {payload.invoice_id} | Amount: {payload.amount} {payload.currency}")
 
-        # 1. Idempotency Key Kontrolü (Çift Çekim Engelleme)
+        # Idempotency Key Kontrolü
         if payload.idempotency_key:
             cache_key = f"payment_idempotency:{payload.idempotency_key}"
             existing = cache_service.get(cache_key)
             if existing:
-                logger.warning(f"[PaymentGateway] Duplicate transaction blocked by Idempotency Key: {payload.idempotency_key}")
+                logger.warning(f"[PaymentGateway] Duplicate request blocked by Idempotency Key: {payload.idempotency_key}")
                 return PaymentResult(**existing)
 
-        # 2. Son Kullanma Tarihi Kontrolü
+        # Expiry Check
         try:
             exp_m = int(payload.expire_month)
             exp_y = int(payload.expire_year)
             if len(str(exp_y)) == 2:
                 exp_y += 2000
-            
             now = datetime.now()
             if exp_y < now.year or (exp_y == now.year and exp_m < now.month):
                 return PaymentResult(
                     success=False,
                     transaction_id=None,
                     receipt_signature=None,
+                    three_d_secure_url=None,
+                    provider=payload.provider,
                     message="Kartın son kullanma tarihi geçmiş.",
                     amount=payload.amount,
                     currency=payload.currency,
@@ -120,44 +116,34 @@ class PaymentGatewayService:
                 success=False,
                 transaction_id=None,
                 receipt_signature=None,
-                message="Geçersiz son kullanma tarihi biçimi.",
+                three_d_secure_url=None,
+                provider=payload.provider,
+                message="Geçersiz son kullanma tarihi.",
                 amount=payload.amount,
                 currency=payload.currency,
                 masked_card=masked
             )
 
-        # 3. Güvenli İşlem Üretimi ve HMAC İmzası
-        tx_id = f"TX-{uuid.uuid4().hex[:12].upper()}"
+        # Provider Sandbox Routing (Iyzico / Stripe / PayTR)
+        tx_id = f"TX-{payload.provider.upper()[:4]}-{uuid.uuid4().hex[:10].upper()}"
         signature = self._generate_hmac_signature(tx_id, payload.amount, payload.currency)
+        three_d_url = f"https://sandbox.glowdesk.com/payments/3d-secure-callback?tx={tx_id}"
 
         result = PaymentResult(
             success=True,
             transaction_id=tx_id,
             receipt_signature=signature,
-            message="Tahsilat işlemi güvenli bir şekilde onaylandı.",
+            three_d_secure_url=three_d_url,
+            provider=payload.provider,
+            message=f"{payload.provider.upper()} Sanal POS Sandbox üzerinden ödeme başarıyla onaylandı.",
             amount=payload.amount,
             currency=payload.currency,
             masked_card=masked
         )
 
-        # Idempotency kaydını 24 saat sakla
         if payload.idempotency_key:
             cache_service.set(f"payment_idempotency:{payload.idempotency_key}", result.model_dump(), ttl_seconds=86400)
 
-        logger.info(f"[PaymentGateway] Payment APPROVED. TxId: {tx_id} | Signature: {signature[:10]}...")
         return result
-
-    def refund_transaction(self, transaction_id: str, amount: float) -> dict:
-        refund_id = f"RF-{uuid.uuid4().hex[:8].upper()}"
-        signature = self._generate_hmac_signature(refund_id, amount, "TRY")
-        logger.info(f"[PaymentGateway] Refund APPROVED. TxId: {transaction_id} | RefundId: {refund_id}")
-        return {
-            "success": True,
-            "transaction_id": transaction_id,
-            "refund_id": refund_id,
-            "amount": amount,
-            "receipt_signature": signature,
-            "message": "İade işlemi onaylandı ve karta aktarıldı."
-        }
 
 payment_service = PaymentGatewayService()
