@@ -5,8 +5,34 @@
 
 import type { OnboardingStepDef, VerticalKey } from './types';
 
+const standardOnboarding: OnboardingStepDef[] = [
+  {
+    id: 'business-info',
+    title: 'İşletme Bilgilerinizi Girin',
+    description: 'İşletme adı, adres ve çalışma saatlerinizi ayarlayın.',
+    settingsKey: 'businessInfoCompleted',
+  },
+  {
+    id: 'services-setup',
+    title: 'Hizmet & Kaynak Kataloğunu Oluşturun',
+    description: 'Sunduğunuz hizmetleri, sürelerini ve fiziki kaynaklarınızı ekleyin.',
+    settingsKey: 'servicesSetupCompleted',
+  },
+  {
+    id: 'booking-settings',
+    title: 'Online Rezervasyon Ayarları',
+    description: 'Randevu alma kurallarını, kapara ve bildirim tercihlerini belirleyin.',
+    settingsKey: 'bookingSettingsCompleted',
+  },
+  {
+    id: 'onboarding-done',
+    title: 'Hazırsınız! 🎉',
+    description: 'İşletmeniz artık online rezervasyon almaya hazır.',
+    settingsKey: 'onboardingCompleted',
+  },
+];
+
 export const VERTICAL_ONBOARDING: Record<VerticalKey, OnboardingStepDef[]> = {
-  // ── Güzellik Salonu Onboarding Adımları ───────────────────────────────────
   salon: [
     {
       id:          'business-info',
@@ -40,70 +66,87 @@ export const VERTICAL_ONBOARDING: Record<VerticalKey, OnboardingStepDef[]> = {
     },
   ],
 
-  // ── Hukuk Bürosu Onboarding Adımları ─────────────────────────────────────
-  hukuk: [
+  clinic: standardOnboarding,
+  auto: standardOnboarding,
+  fitness: standardOnboarding,
+  vet: standardOnboarding,
+  coaching: standardOnboarding,
+
+  legal: [
     {
-      id:          'office-info',
-      title:       'Büro Bilgilerini Girin',
+      id: 'office-info',
+      title: 'Büro Bilgilerini Girin',
       description: 'Büro adı, adres ve iletişim bilgilerini ayarlayın.',
       settingsKey: 'businessInfoCompleted',
     },
     {
-      id:          'case-types',
-      title:       'Danışmanlık Türlerini Tanımlayın',
+      id: 'case-types',
+      title: 'Danışmanlık Türlerini Tanımlayın',
       description: 'Verdiğiniz hukuki danışmanlık türlerini, sürelerini ve ücretlerini ekleyin.',
       settingsKey: 'servicesSetupCompleted',
     },
     {
-      id:          'payment-setup',
-      title:       'Ön Ödeme Ayarları',
+      id: 'payment-setup',
+      title: 'Ön Ödeme Ayarları',
       description: 'Danışmanlık öncesi alınan depozito tutarını ve ödeme yöntemini belirleyin.',
       settingsKey: 'paymentSetupCompleted',
     },
     {
-      id:          'document-settings',
-      title:       'Belge Yükleme Ayarları',
-      description: 'Müvekkillerin randevu öncesi yükleyeceği belge türlerini yapılandırın.',
-      settingsKey: 'documentSettingsCompleted',
+      id: 'onboarding-done',
+      title: 'Büronuz Hazır! ⚖️',
+      description: 'Artık online danışmanlık randevusu alabilirsiniz.',
+      settingsKey: 'onboardingCompleted',
+    },
+  ],
+  hukuk: [
+    {
+      id: 'office-info',
+      title: 'Büro Bilgilerini Girin',
+      description: 'Büro adı, adres ve iletişim bilgilerini ayarlayın.',
+      settingsKey: 'businessInfoCompleted',
     },
     {
-      id:          'onboarding-done',
-      title:       'Büronuz Hazır! ⚖️',
+      id: 'case-types',
+      title: 'Danışmanlık Türlerini Tanımlayın',
+      description: 'Verdiğiniz hukuki danışmanlık türlerini, sürelerini ve ücretlerini ekleyin.',
+      settingsKey: 'servicesSetupCompleted',
+    },
+    {
+      id: 'payment-setup',
+      title: 'Ön Ödeme Ayarları',
+      description: 'Danışmanlık öncesi alınan depozito tutarını ve ödeme yöntemini belirleyin.',
+      settingsKey: 'paymentSetupCompleted',
+    },
+    {
+      id: 'onboarding-done',
+      title: 'Büronuz Hazır! ⚖️',
       description: 'Artık online danışmanlık randevusu alabilirsiniz.',
       settingsKey: 'onboardingCompleted',
     },
   ],
 
-  // ── Restoran Onboarding Adımları ──────────────────────────────────────────
+  photo: standardOnboarding,
+  spa: standardOnboarding,
+  coworking: standardOnboarding,
+  driving: standardOnboarding,
+
   restoran: [
     {
-      id:          'restaurant-info',
-      title:       'Restoran Bilgilerini Girin',
+      id: 'restaurant-info',
+      title: 'Restoran Bilgilerini Girin',
       description: 'Restoran adı, adres, çalışma saatleri ve mutfak türünü ekleyin.',
       settingsKey: 'businessInfoCompleted',
     },
     {
-      id:          'table-setup',
-      title:       'Masa Düzeninizi Oluşturun',
-      description: 'Masalarınızı, kapasitelerini ve konumlarını (iç mekan, teras vb.) tanımlayın.',
+      id: 'table-setup',
+      title: 'Masa Düzeninizi Oluşturun',
+      description: 'Masalarınızı, kapasitelerini ve konumlarını tanımlayın.',
       settingsKey: 'tableSetupCompleted',
     },
     {
-      id:          'deposit-setup',
-      title:       'Depozito Kuralları',
-      description: 'Rezervasyon için alınacak depozito tutarını ve iade politikasını belirleyin.',
-      settingsKey: 'depositSetupCompleted',
-    },
-    {
-      id:          'booking-settings',
-      title:       'Rezervasyon Kuralları',
-      description: 'Minimum kişi sayısı, maksimum önceden rezervasyon süresi ve iptal politikasını ayarlayın.',
-      settingsKey: 'bookingSettingsCompleted',
-    },
-    {
-      id:          'onboarding-done',
-      title:       'Restoranınız Hazır! 🍽️',
-      description: 'Artık online masa rezervasyonu alabilirsiniz.',
+      id: 'onboarding-done',
+      title: 'Restoranınız Hazır! 🍽️',
+      description: 'Artık masa rezervasyonu almaya hazır.',
       settingsKey: 'onboardingCompleted',
     },
   ],

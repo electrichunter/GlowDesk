@@ -67,11 +67,23 @@ export default function DynamicOnboarding() {
     setIsOpen(false);
   };
 
-  const accentClass = {
-    cyan:   'bg-cyan-600 hover:bg-cyan-700',
-    violet: 'bg-violet-600 hover:bg-violet-700',
-    amber:  'bg-amber-500 hover:bg-amber-600',
-  }[verticalConfig?.accentColor ?? 'cyan'];
+  const accentClassMap: Record<string, string> = {
+    cyan:    'bg-cyan-600 hover:bg-cyan-700',
+    violet:  'bg-violet-600 hover:bg-violet-700',
+    amber:   'bg-amber-500 hover:bg-amber-600',
+    emerald: 'bg-emerald-600 hover:bg-emerald-700',
+    orange:  'bg-orange-600 hover:bg-orange-700',
+    lime:    'bg-lime-600 hover:bg-lime-700',
+    teal:    'bg-teal-600 hover:bg-teal-700',
+    indigo:  'bg-indigo-600 hover:bg-indigo-700',
+    rose:    'bg-rose-600 hover:bg-rose-700',
+    purple:  'bg-purple-600 hover:bg-purple-700',
+    sky:     'bg-sky-600 hover:bg-sky-700',
+    yellow:  'bg-yellow-500 hover:bg-yellow-600',
+  };
+
+  const accentClass = accentClassMap[verticalConfig?.accentColor ?? 'cyan'] ?? accentClassMap.cyan;
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

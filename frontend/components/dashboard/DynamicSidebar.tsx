@@ -136,11 +136,22 @@ export default function DynamicSidebar() {
   };
 
   // ── Sektör renk aksanı ───────────────────────────────────────────────────
-  const accentClass = {
-    cyan:   'text-cyan-500',
-    violet: 'text-violet-500',
-    amber:  'text-amber-500',
-  }[verticalConfig?.accentColor ?? 'cyan'];
+  const accentClassMap: Record<string, string> = {
+    cyan:    'text-cyan-500',
+    violet:  'text-violet-500',
+    amber:   'text-amber-500',
+    emerald: 'text-emerald-500',
+    orange:  'text-orange-500',
+    lime:    'text-lime-500',
+    teal:    'text-teal-500',
+    indigo:  'text-indigo-500',
+    rose:    'text-rose-500',
+    purple:  'text-purple-500',
+    sky:     'text-sky-500',
+    yellow:  'text-yellow-500',
+  };
+  const accentClass = accentClassMap[verticalConfig?.accentColor ?? 'cyan'] ?? accentClassMap.cyan;
+
 
   return (
     <aside className="w-full md:w-[270px] bg-white border-r border-slate-200/90 flex flex-col justify-between p-5 md:h-screen sticky top-0 shadow-layered z-30 shrink-0">

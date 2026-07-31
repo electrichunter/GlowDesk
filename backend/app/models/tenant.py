@@ -10,7 +10,7 @@ class Tenant(Base):
     id = Column(String(64), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
     slug = Column(String(255), unique=True, nullable=False)
-    sector = Column(String(50), nullable=False, default="beauty")
+    sector = Column(String(50), nullable=False, default="salon")  # salon, clinic, auto, fitness, vet, coaching, legal, photo, spa, coworking, driving, restoran
     phone = Column(String(50), nullable=True)
     email = Column(String(255), nullable=True)
     address = Column(Text, nullable=True)
@@ -23,6 +23,12 @@ class Tenant(Base):
     subscription_tier = Column(String(50), nullable=False, default="pro")
     status = Column(String(50), nullable=False, default="active")
     is_active = Column(Boolean, default=True)
+
+    # --- Sektörel Ayarlar & Konfigürasyon ---
+    settings_json = Column(Text, nullable=True)  # Cancellation policy, deposit rates, notification templates, etc.
+    timezone = Column(String(50), nullable=False, default="Europe/Istanbul")
+    locale = Column(String(10), nullable=False, default="tr_TR")
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -30,3 +36,10 @@ class Tenant(Base):
     users = relationship("User", back_populates="tenant", cascade="all, delete-orphan")
     services = relationship("Service", back_populates="tenant", cascade="all, delete-orphan")
     appointments = relationship("Appointment", back_populates="tenant", cascade="all, delete-orphan")
+    resources = relationship("Resource", back_populates="tenant", cascade="all, delete-orphan")
+    packages = relationship("Package", back_populates="tenant", cascade="all, delete-orphan")
+    waitlist_entries = relationship("WaitlistEntry", back_populates="tenant", cascade="all, delete-orphan")
+    payment_transactions = relationship("PaymentTransaction", back_populates="tenant", cascade="all, delete-orphan")
+    notification_logs = relationship("NotificationLog", back_populates="tenant", cascade="all, delete-orphan")
+    staff_commissions = relationship("StaffCommission", back_populates="tenant", cascade="all, delete-orphan")
+

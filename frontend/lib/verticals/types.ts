@@ -3,22 +3,47 @@
 // Tüm sektörel tip tanımları bu dosyada merkezi olarak yönetilir.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Desteklenen üst sektör kategorileri */
-export type VerticalKey = 'salon' | 'hukuk' | 'restoran';
+/** Desteklenen dikey sektör kategorileri */
+export type VerticalKey =
+  | 'salon'     // Güzellik, Kuaför, Estetik
+  | 'clinic'    // Diş, Dermatoloji, Fizik Tedavi, Poliklinik
+  | 'auto'      // Oto Kuaför, Detailing, Lastik, Servis
+  | 'fitness'   // Butik Fitness, Pilates, Yoga, PT
+  | 'vet'       // Veteriner, Pet Grooming, Pet Otel
+  | 'coaching'  // Özel Ders, Psikolojik Danışmanlık, Koçluk
+  | 'legal'     // Hukuk Bürosu, Mali Müşavirlik
+  | 'photo'     // Fotoğraf Stüdyosu, Ekipman Kiralama
+  | 'spa'       // Spa, Masaj, Wellness, Termal
+  | 'coworking' // Toplantı Odası, Ortak Çalışma Alanı
+  | 'driving'   // Sürücü Kursu, Direksiyon Eğitimi
+  | 'restoran'  // Restoran, Masa Rezervasyonu
+  | 'hukuk';    // Legacy alias for legal
 
 /**
  * Mevcut BusinessSector → VerticalKey eşleme haritası.
- * Eski 'sector' alanından (beauty, spa, barber...) yeni 'vertical' alanına geçiş.
  */
 export const SECTOR_TO_VERTICAL: Record<string, VerticalKey> = {
-  beauty:   'salon',
-  spa:      'salon',
-  barber:   'salon',
-  massage:  'salon',
-  clinic:   'salon', // Klinik ilerleyen sprintte ayrı dikey olabilir
-  salon:    'salon',
-  hukuk:    'hukuk',
-  restoran: 'restoran',
+  beauty:     'salon',
+  barber:     'salon',
+  salon:      'salon',
+  massage:    'spa',
+  spa:        'spa',
+  clinic:     'clinic',
+  dental:     'clinic',
+  auto:       'auto',
+  detailing:  'auto',
+  fitness:    'fitness',
+  pilates:    'fitness',
+  vet:        'vet',
+  grooming:   'vet',
+  coaching:   'coaching',
+  consulting: 'coaching',
+  legal:      'legal',
+  hukuk:      'legal',
+  photo:      'photo',
+  coworking:  'coworking',
+  driving:    'driving',
+  restoran:   'restoran',
 };
 
 /** Bir sektörün tam tanım yapısı (SEO, UI, dashboard metadata) */
@@ -40,7 +65,7 @@ export interface VerticalDefinition {
   /** Hero bölümü alt başlık */
   heroSubline: string;
   /** Tasarım aksanı rengi (Tailwind sınıf adı) */
-  accentColor: 'cyan' | 'violet' | 'amber';
+  accentColor: 'cyan' | 'violet' | 'amber' | 'emerald' | 'orange' | 'lime' | 'teal' | 'indigo' | 'rose' | 'purple' | 'sky' | 'yellow';
   /** Emoji/ikon temsili */
   icon: string;
   /** Dashboard'da "Müşteri" yerine geçen terminoloji */
@@ -70,40 +95,30 @@ export interface DateTimeSelection {
   endTime: string;    // "15:30"
 }
 
-/** Salon'a özel rezervasyon verisi */
-export interface SalonBookingMetadata {
-  serviceId: string;
-  serviceName: string;
+/** Generic / Sektörel rezervasyon verisi */
+export interface GenericBookingMetadata {
+  serviceId?: string;
+  serviceName?: string;
   staffId?: string;
   staffName?: string;
-  workstationId?: string;
-}
-
-/** Hukuk bürosuna özel rezervasyon verisi */
-export interface HukukBookingMetadata {
-  caseTypeId: string;
-  caseTypeName: string;
-  documentUrls: string[];
-  depositPaid: boolean;
-  depositAmount: number;
-  paymentRef?: string;
-}
-
-/** Restorana özel rezervasyon verisi */
-export interface RestoranBookingMetadata {
-  guestCount: number;
-  tableId: string;
-  tableLabel: string;
-  depositPaid: boolean;
-  depositAmount: number;
+  resourceIds?: string[];
+  depositPaid?: boolean;
+  depositAmount?: number;
   specialRequests?: string;
+  sectorExtraJson?: string;
+
+  // Sektöre özel opsiyonel alanlar
+  guestCount?: number;
+  tableId?: string;
+  tableLabel?: string;
+  caseTypeId?: string;
+  caseTypeName?: string;
+  documentUrls?: string[];
 }
 
-/** Polimorfik rezervasyon form state — V tipiyle daraltılır */
-export type BookingMetadata<V extends VerticalKey> =
-  V extends 'salon'    ? SalonBookingMetadata :
-  V extends 'hukuk'   ? HukukBookingMetadata :
-  RestoranBookingMetadata;
+
+export type BookingMetadata<V extends VerticalKey> = GenericBookingMetadata;
+
 
 export interface BookingFormState<V extends VerticalKey = VerticalKey> {
   vertical: V;

@@ -7,11 +7,22 @@ interface SectorHeroProps {
 }
 
 export function SectorHero({ config }: SectorHeroProps) {
-  const accentClasses = {
-    cyan: 'bg-cyan-500 text-slate-900',
-    violet: 'bg-violet-600 text-white',
-    amber: 'bg-amber-500 text-slate-900',
-  }[config.accentColor || 'cyan'];
+  const accentClassesMap: Record<string, string> = {
+    cyan:    'bg-cyan-500 text-slate-900',
+    violet:  'bg-violet-600 text-white',
+    amber:   'bg-amber-500 text-slate-900',
+    emerald: 'bg-emerald-600 text-white',
+    orange:  'bg-orange-600 text-white',
+    lime:    'bg-lime-500 text-slate-900',
+    teal:    'bg-teal-600 text-white',
+    indigo:  'bg-indigo-600 text-white',
+    rose:    'bg-rose-600 text-white',
+    purple:  'bg-purple-600 text-white',
+    sky:     'bg-sky-500 text-slate-900',
+    yellow:  'bg-yellow-400 text-slate-900',
+  };
+  const accentClasses = accentClassesMap[config.accentColor || 'cyan'] ?? accentClassesMap.cyan;
+
 
   return (
     <section className="relative py-20 px-6 max-w-6xl mx-auto text-center">
