@@ -207,8 +207,8 @@ services:
     container_name: glowdesk_vpn
     restart: always
     environment:
-      - WG_HOST=${VPS_IP:-localhost}
-      - PASSWORD_HASH=$$2a$$12$$glowdesk_vpn_secret
+      - WG_HOST=${VPS_IP:-51.195.110.85}
+      - PASSWORD=glowdesk_secret
       - PORT=51821
       - WG_PORT=51820
     ports:
