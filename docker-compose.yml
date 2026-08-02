@@ -208,7 +208,7 @@ services:
     restart: always
     environment:
       - WG_HOST=${VPS_IP:-51.195.110.85}
-      - PASSWORD=glowdesk_secret
+      - PASSWORD_HASH=$$2a$$12$$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad6J1CDlGzB/PqW
       - PORT=51821
       - WG_PORT=51820
     ports:
