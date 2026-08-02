@@ -38,7 +38,7 @@ class Resource(Base):
     resource_type = Column(
         SAEnum(
             "room", "equipment", "station", "vehicle",
-            "seat", "bay", "studio", "other",
+            "seat", "bay", "studio", "kennel", "pet_room", "cage", "other",
             name="resource_type_enum",
         ),
         nullable=False, default="room",

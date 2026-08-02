@@ -69,7 +69,7 @@ def register_business(payload: RegisterBusinessRequest, db: Session = Depends(ge
         street=payload.street,
         staff_count=payload.staffCount or "1-3",
         workstation_count=payload.workstationCount or "1-3",
-        subscription_tier="pro",
+        subscription_tier="starter",
         status="active",
         is_active=True
     )

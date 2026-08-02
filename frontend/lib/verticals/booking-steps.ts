@@ -57,6 +57,7 @@ export const VERTICAL_BOOKING_STEPS: Record<VerticalKey, BookingStep[]> = {
     },
   ],
 
+  barber: standardSteps,
   clinic: standardSteps,
   auto: standardSteps,
   fitness: standardSteps,

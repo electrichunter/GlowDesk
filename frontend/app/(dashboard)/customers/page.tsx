@@ -277,6 +277,16 @@ export default function CustomersPage() {
                     {selectedCustomer.notes || "Bu müşteri için henüz eklenmiş özel bir not yok."}
                   </p>
                 </div>
+
+                <div className="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-xl space-y-1.5">
+                  <div className="flex justify-between items-center text-indigo-950 font-black">
+                    <span>💳 Paket & Ders Kredi Cüzdanı</span>
+                    <span className="px-2 py-0.5 bg-indigo-200 text-indigo-900 rounded-md text-[10px]">Aktif</span>
+                  </div>
+                  <p className="text-slate-600 text-[11px] font-semibold">
+                    10 Seanslık Paket: <strong>Kalan 4 Kredi</strong> (Son kullanım: 15.12.2026)
+                  </p>
+                </div>
               </div>
 
               <div className="pt-2 border-t border-slate-100">

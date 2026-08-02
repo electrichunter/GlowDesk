@@ -11,7 +11,7 @@ import PlanFeatureGate from "@/components/dashboard/PlanFeatureGate";
 import { SUBSCRIPTION_PLANS } from "@/lib/plans";
 
 export default function SettingsPage() {
-  const { activePlan, planConfig, openUpgradeModal, hasFeature, checkLimit } = useTenant();
+  const { tenant, activePlan, planConfig, openUpgradeModal, hasFeature, checkLimit, verticalConfig } = useTenant();
 
   const [session, setSession] = useState<SessionPayload | null>(null);
   const [tenantName, setTenantName] = useState("");

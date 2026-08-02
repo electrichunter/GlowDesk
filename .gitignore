@@ -74,3 +74,10 @@ devops/redis/data/
 *.swp
 *.swo
 
+# Documentation & Screenshots (local only, ignore git)
+doc/gorsel/
+docs/gorsel/
+doc/
+docs/
+
+

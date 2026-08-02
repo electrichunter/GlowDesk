@@ -13,9 +13,22 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/notifications', label: 'Bildirim Logları', iconKey: 'IconInbox', minRole: 'owner' },
     { href: '/waitlist', label: 'No-Show Motoru', iconKey: 'IconInbox', minRole: 'staff' },
     { href: '/customers', label: 'Müşteriler', iconKey: 'IconUsers', minRole: 'owner' },
+    { href: '/resources', label: 'Koltuklar & Bakım Odaları', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Hizmetler', iconKey: 'IconSparkles', minRole: 'owner' },
     { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Salon Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
+  ],
+
+  // ── 1b. Berber & Erkek Kuaförü ──────────────────────────────────────────────
+  barber: [
+    { href: '/dashboard', label: 'Koltuk Sırası Özeti', iconKey: 'IconHome', minRole: 'staff' },
+    { href: '/appointments', label: 'Tıraş Takvimi', iconKey: 'IconCalendar', minRole: 'staff' },
+    { href: '/waitlist', label: 'Sıradaki Müşteriler', iconKey: 'IconInbox', minRole: 'staff' },
+    { href: '/customers', label: 'Müşteri Defteri', iconKey: 'IconUsers', minRole: 'owner' },
+    { href: '/resources', label: 'Koltuklar & Aynalar', iconKey: 'IconGrid', minRole: 'owner' },
+    { href: '/services', label: 'Tıraş & Bakım Paketleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
+    { href: '/settings', label: 'Berber Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
   // ── 2. Diş Kliniği & Poliklinik ──────────────────────────────────────────
@@ -26,6 +39,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/resources', label: 'Koltuk & Cihazlar', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/waitlist', label: 'Acil Bekleme Listesi', iconKey: 'IconInbox', minRole: 'staff' },
     { href: '/services', label: 'Tedavi Protokolleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Klinik Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -36,6 +50,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/customers', label: 'Plaka & Müşteri Kayıt', iconKey: 'IconUsers', minRole: 'owner' },
     { href: '/resources', label: 'Lift & Yıkama Pedi', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Servis & Bakım Paketleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Servis Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -44,8 +59,10 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/dashboard', label: 'Günlük Ders Programı', iconKey: 'IconHome', minRole: 'staff' },
     { href: '/appointments', label: 'Ders & Takvim', iconKey: 'IconCalendar', minRole: 'staff' },
     { href: '/customers', label: 'Üye Paketleri & Krediler', iconKey: 'IconUsers', minRole: 'owner' },
+    { href: '/resources', label: 'Stüdyolar & Reformerlar', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/waitlist', label: 'Ders Bekleme Sırası', iconKey: 'IconInbox', minRole: 'staff' },
     { href: '/services', label: 'Ders Paketleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Stüdyo Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -56,6 +73,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/customers', label: 'Pet & Sahip Profilleri', iconKey: 'IconUsers', minRole: 'staff' },
     { href: '/resources', label: 'Pet Otel & Odalar', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Aşı & Grooming İşlemleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Klinik Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -64,7 +82,9 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/dashboard', label: 'Bugünkü Seanslar', iconKey: 'IconHome', minRole: 'staff' },
     { href: '/appointments', label: 'Seans Takvimi', iconKey: 'IconCalendar', minRole: 'staff' },
     { href: '/customers', label: 'Öğrenci / Danışanlar', iconKey: 'IconUsers', minRole: 'staff' },
+    { href: '/resources', label: 'Seans Odaları & Ekranlar', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Müfredat & Seans Türleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Ofis / Profil Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -73,6 +93,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/dashboard', label: 'Günlük Görüşmeler', iconKey: 'IconHome', minRole: 'staff' },
     { href: '/appointments', label: 'Dava Takvimi', iconKey: 'IconCalendar', minRole: 'staff' },
     { href: '/customers', label: 'Müvekkiller', iconKey: 'IconUsers', minRole: 'owner' },
+    { href: '/resources', label: 'Toplantı & Görüşme Masaları', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Danışmanlık Paketleri', iconKey: 'IconSparkles', minRole: 'owner' },
     { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Büro Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
@@ -81,6 +102,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/dashboard', label: 'Günlük Görüşmeler', iconKey: 'IconHome', minRole: 'staff' },
     { href: '/appointments', label: 'Dava Takvimi', iconKey: 'IconCalendar', minRole: 'staff' },
     { href: '/customers', label: 'Müvekkiller', iconKey: 'IconUsers', minRole: 'owner' },
+    { href: '/resources', label: 'Toplantı & Görüşme Masaları', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Danışmanlık Paketleri', iconKey: 'IconSparkles', minRole: 'owner' },
     { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Büro Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
@@ -93,6 +115,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/customers', label: 'Müşteri Galerisi', iconKey: 'IconUsers', minRole: 'owner' },
     { href: '/resources', label: 'Plato & Ekipmanlar', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Çekim & Kiralama Paketleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Stüdyo Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -103,6 +126,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/customers', label: 'Terapi Geçmişi & Misafirler', iconKey: 'IconUsers', minRole: 'owner' },
     { href: '/resources', label: 'VIP Suit & Masaj Odaları', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Spa Paketleri & Hediye Çekleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Tesis Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -113,6 +137,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/customers', label: 'Kurumsal Üyeler & Cüzdanlar', iconKey: 'IconUsers', minRole: 'owner' },
     { href: '/resources', label: 'Toplantı Odaları & IoT', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Oda & İkram Paketleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Plaza Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -123,6 +148,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/customers', label: 'Sürücü Adayları & 14 Ders', iconKey: 'IconUsers', minRole: 'owner' },
     { href: '/resources', label: 'Eğitim Araçları', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/services', label: 'Ehliyet Sınıfları & Ek Ders', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Kurs Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -131,7 +157,9 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/dashboard', label: 'Masa Haritası', iconKey: 'IconGrid', minRole: 'staff' },
     { href: '/appointments', label: 'Rezervasyonlar', iconKey: 'IconCalendar', minRole: 'staff' },
     { href: '/customers', label: 'Misafirler', iconKey: 'IconUsers', minRole: 'owner' },
+    { href: '/resources', label: 'Masa & Salon Düzeni', iconKey: 'IconGrid', minRole: 'owner' },
     { href: '/waitlist', label: 'Bekleme Listesi', iconKey: 'IconInbox', minRole: 'staff' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Restoran Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 };

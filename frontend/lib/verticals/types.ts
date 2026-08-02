@@ -6,6 +6,7 @@
 /** Desteklenen dikey sektör kategorileri */
 export type VerticalKey =
   | 'salon'     // Güzellik, Kuaför, Estetik
+  | 'barber'    // Berber, Erkek Kuaförü
   | 'clinic'    // Diş, Dermatoloji, Fizik Tedavi, Poliklinik
   | 'auto'      // Oto Kuaför, Detailing, Lastik, Servis
   | 'fitness'   // Butik Fitness, Pilates, Yoga, PT
@@ -24,7 +25,7 @@ export type VerticalKey =
  */
 export const SECTOR_TO_VERTICAL: Record<string, VerticalKey> = {
   beauty:     'salon',
-  barber:     'salon',
+  barber:     'barber',
   salon:      'salon',
   massage:    'spa',
   spa:        'spa',

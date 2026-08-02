@@ -265,6 +265,11 @@ export default function AppointmentsPage() {
                 {tab.label}
               </button>
             ))}
+            {(vertical === "legal" || vertical === "hukuk") && (
+              <span className="px-3 py-1.5 text-xs font-black rounded-lg bg-violet-100 text-violet-800 border border-violet-200 flex items-center gap-1">
+                <span>⚖️</span> <span>Duruşma & UYAP Takvimi Aktif</span>
+              </span>
+            )}
           </div>
 
           {/* Staff Filter */}

@@ -59,6 +59,17 @@ export default function FinancePage() {
   const [entryDate, setEntryDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Staff Commission State
+  const [showCommissionModal, setShowCommissionModal] = useState(false);
+  const [staffCommissions, setStaffCommissions] = useState([
+    { name: "Ahmet Yılmaz (Kıdemli)", sales: 18400, rate: 15, commission: 2760 },
+    { name: "Elif Demir (Uzman)", sales: 24500, rate: 20, commission: 4900 },
+    { name: "Can Öztürk (Asistan)", sales: 9800, rate: 10, commission: 980 },
+  ]);
+
+  // Digital Invoice PDF Preview State
+  const [selectedInvoiceEntry, setSelectedInvoiceEntry] = useState<FinancialEntry | null>(null);
+
   const fetchFinanceData = async () => {
     setLoading(true);
     try {
@@ -188,12 +199,22 @@ export default function FinancePage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="btn-primary-blue py-3 px-5 text-xs font-black shadow-md flex items-center gap-2"
-        >
-          <span>➕</span> <span>Yeni Gelir / Gider Ekle</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowCommissionModal(true)}
+            className="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>🏆</span> <span>Personel Prim & Hakediş</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="btn-primary-blue py-3 px-5 text-xs font-black shadow-md flex items-center gap-2"
+          >
+            <span>➕</span> <span>Yeni Gelir / Gider Ekle</span>
+          </button>
+        </div>
       </div>
 
       {/* KPI Bilanço Kartları */}
@@ -478,6 +499,58 @@ export default function FinancePage() {
 
             </form>
 
+          </div>
+        </div>
+      )}
+
+      {/* Personel Prim & Hakediş Modalı */}
+      {showCommissionModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 font-display">
+                  🏆 Personel Prim & Hakediş Defteri
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">Hizmet ve ciro bazlı aylık prim hesaplamaları</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCommissionModal(false)}
+                className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-bold flex items-center justify-center hover:bg-slate-200 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {staffCommissions.map((staff, idx) => (
+                <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900">{staff.name}</h4>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Aylık Ciro: <strong>₺{staff.sales.toLocaleString()}</strong> • Prim Oranı: <strong className="text-amber-700">%{staff.rate}</strong>
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-base font-black text-emerald-600 font-display block">
+                      ₺{staff.commission.toLocaleString()}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-bold">Hakediş Tutarı</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowCommissionModal(false)}
+                className="btn-cyan text-xs py-2.5 px-5 font-extrabold"
+              >
+                Tamam
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -13,6 +13,13 @@ export const VERTICAL_STATS: Record<VerticalKey, StatsCardDef[]> = {
     { key: 'waitlist_count', label: 'Bekleme Listesi', iconKey: 'IconClock', format: 'number', colorKey: 'violet' },
   ],
 
+  barber: [
+    { key: 'today_appointments', label: 'Sıradaki Müşteriler', iconKey: 'IconCalendar', format: 'number', colorKey: 'blue' },
+    { key: 'monthly_revenue', label: 'Aylık Tıraş Cirosu', iconKey: 'IconTrendingUp', format: 'currency', colorKey: 'green' },
+    { key: 'chair_occupancy', label: 'Koltuk Doluluk Oranı', iconKey: 'IconGrid', format: 'percent', colorKey: 'amber' },
+    { key: 'waitlist_count', label: 'Bekleyenler', iconKey: 'IconClock', format: 'number', colorKey: 'violet' },
+  ],
+
   clinic: [
     { key: 'today_appointments', label: 'Bugünkü Hastalar', iconKey: 'IconCalendar', format: 'number', colorKey: 'blue' },
     { key: 'monthly_revenue', label: 'Aylık Tedavi Cirosu', iconKey: 'IconTrendingUp', format: 'currency', colorKey: 'green' },

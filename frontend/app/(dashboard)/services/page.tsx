@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { defaultServiceTemplates, getSectorLabel, getSectorIcon } from "@/__mocks__/mock-data";
+import { useTenant } from "@/contexts/TenantContext";
+import { getSectorServiceTemplates } from "@/lib/verticals/service-templates";
+import { getSectorLabel, getSectorIcon } from "@/__mocks__/mock-data";
 import type { Service } from "@/lib/types";
 import { SkeletonCard } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function ServicesPage() {
+  const { vertical, verticalConfig } = useTenant();
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<Service[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
-  const [selectedTemplateSector, setSelectedTemplateSector] = useState("beauty");
+  const [selectedTemplateSector, setSelectedTemplateSector] = useState("salon");
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -19,7 +22,7 @@ export default function ServicesPage() {
       try {
         const { apiRequest } = await import("@/lib/api-client");
         const { data } = await apiRequest<any[]>("/services");
-        if (data && Array.isArray(data)) {
+        if (data && Array.isArray(data) && data.length > 0) {
           setServices(
             data.map((s) => ({
               id: s.id,
@@ -33,16 +36,47 @@ export default function ServicesPage() {
               created_at: s.created_at || new Date().toISOString(),
             }))
           );
+        } else {
+          // Sektöre Özel Hazır Şablonlar
+          const templates = getSectorServiceTemplates(vertical);
+          setServices(
+            templates.map((t) => ({
+              id: t.id,
+              tenant_id: "demo",
+              name: t.name,
+              category: t.category,
+              duration_minutes: t.duration_minutes,
+              price: t.price,
+              currency: "TRY",
+              description: t.description,
+              created_at: new Date().toISOString(),
+            }))
+          );
         }
       } catch (err) {
         console.error("Services fetch error:", err);
+        // Fallback sektörel varsayılanlar
+        const templates = getSectorServiceTemplates(vertical);
+        setServices(
+          templates.map((t) => ({
+            id: t.id,
+            tenant_id: "demo",
+            name: t.name,
+            category: t.category,
+            duration_minutes: t.duration_minutes,
+            price: t.price,
+            currency: "TRY",
+            description: t.description,
+            created_at: new Date().toISOString(),
+          }))
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchServices();
-  }, []);
+  }, [vertical]);
 
   function floatNumber(val: any): number {
     const p = parseFloat(val);
@@ -106,14 +140,16 @@ export default function ServicesPage() {
   };
 
   const handleAddFromTemplate = (templateSector: string) => {
-    const templates = defaultServiceTemplates[templateSector] || [];
+    const templates = getSectorServiceTemplates(templateSector as any) || [];
     const newServices: Service[] = templates.map((t, i) => ({
       id: `svc-tpl-${Date.now()}-${i}`,
       tenant_id: "tenant-1",
       name: t.name,
+      category: t.category,
       duration_minutes: t.duration_minutes,
       price: t.price,
       currency: "TRY",
+      description: t.description,
       created_at: new Date().toISOString(),
     }));
     const updated = [...services, ...newServices];
@@ -123,11 +159,19 @@ export default function ServicesPage() {
   };
 
   const sectorOptions = [
-    { key: "beauty",  label: getSectorLabel("beauty"),  icon: getSectorIcon("beauty") },
-    { key: "barber",  label: getSectorLabel("barber"),  icon: getSectorIcon("barber") },
-    { key: "massage", label: getSectorLabel("massage"), icon: getSectorIcon("massage") },
-    { key: "spa",     label: getSectorLabel("spa"),     icon: getSectorIcon("spa") },
-    { key: "clinic",  label: getSectorLabel("clinic"),  icon: getSectorIcon("clinic") },
+    { key: "salon",     label: "Güzellik Salonu", icon: "✂️" },
+    { key: "barber",    label: "Berber & Erkek Kuaförü", icon: "💈" },
+    { key: "clinic",    label: "Diş & Sağlık Kliniği", icon: "🦷" },
+    { key: "auto",      label: "Oto Servis & Detailing", icon: "🚗" },
+    { key: "fitness",   label: "Fitness & Pilates", icon: "🧘" },
+    { key: "vet",       label: "Veteriner & Pet Otel", icon: "🐾" },
+    { key: "coaching",  label: "Danışmanlık & Koçluk", icon: "🧠" },
+    { key: "legal",     label: "Hukuk Bürosu", icon: "⚖️" },
+    { key: "photo",     label: "Fotoğraf Stüdyosu", icon: "📸" },
+    { key: "spa",       label: "Spa & Wellness", icon: "🧖" },
+    { key: "coworking", label: "Coworking & Toplantı", icon: "🏢" },
+    { key: "driving",   label: "Sürücü Kursu", icon: "🚘" },
+    { key: "restoran",  label: "Restoran & Masa", icon: "🍽️" },
   ];
 
   return (
@@ -229,11 +273,11 @@ export default function ServicesPage() {
                 <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
                   {getSectorIcon(selectedTemplateSector)} {getSectorLabel(selectedTemplateSector)} — Hazır Hizmetler
                 </p>
-                {(defaultServiceTemplates[selectedTemplateSector] || []).map((t, i) => (
+                {(getSectorServiceTemplates(selectedTemplateSector as any) || []).map((t, i) => (
                   <div key={i} className="flex justify-between items-center py-2 border-b border-slate-200/60 last:border-0">
                     <div>
                       <span className="text-xs text-[#1E1B4B] font-bold">{t.name}</span>
-                      <span className="text-[10px] text-slate-500 block">⏱ {t.duration_minutes} dk</span>
+                      <span className="text-[10px] text-slate-500 block">⏱ {t.duration_minutes} dk • {t.description}</span>
                     </div>
                     <span className="text-xs font-black text-indigo-900">₺{t.price.toLocaleString("tr-TR")}</span>
                   </div>
@@ -251,7 +295,7 @@ export default function ServicesPage() {
                   onClick={() => handleAddFromTemplate(selectedTemplateSector)}
                   className="w-2/3 btn-primary justify-center text-xs py-3 shadow-md"
                 >
-                  ✅ Tüm Şablonları Ekle ({(defaultServiceTemplates[selectedTemplateSector] || []).length} hizmet)
+                  ✅ Tüm Şablonları Ekle ({(getSectorServiceTemplates(selectedTemplateSector as any) || []).length} hizmet)
                 </button>
               </div>
             </div>

@@ -66,6 +66,7 @@ export const VERTICAL_ONBOARDING: Record<VerticalKey, OnboardingStepDef[]> = {
     },
   ],
 
+  barber: standardOnboarding,
   clinic: standardOnboarding,
   auto: standardOnboarding,
   fitness: standardOnboarding,
