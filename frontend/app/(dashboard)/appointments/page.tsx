@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import AppointmentCard from "@/components/dashboard/AppointmentCard";
+import CalendarView from "@/components/dashboard/CalendarView";
 import type { Appointment, AppointmentStatus, Customer, Service } from "@/lib/types";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -12,6 +13,7 @@ export default function AppointmentsPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [viewType, setViewType] = useState<"list" | "calendar">("calendar");
   const [statusFilter, setStatusFilter] = useState<"all" | AppointmentStatus>("all");
   const [staffFilter, setStaffFilter] = useState<string>("all");
 
@@ -166,15 +168,35 @@ export default function AppointmentsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-[#1E1B4B]">Personel Bazlı Dinamik Takvim</h1>
-          <p className="text-slate-500 text-xs mt-1">Personel ve koltuk bazında randevu takvimi, çalışma akışı ve doluluk oranları.</p>
+          <h1 className="text-2xl font-extrabold font-display text-[#1E1B4B]">Personel & Koltuk Yönetim Paneli</h1>
+          <p className="text-slate-500 text-xs mt-1">Personel ve koltuk bazında dinamik takvim, doluluk oranları ve seans takibi.</p>
         </div>
-        <button 
-          onClick={() => setShowAddModal(true)} 
-          className="btn-primary text-xs py-2.5 px-4 shadow-sm"
-        >
-          ➕ Yeni Randevu Ekle
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex bg-slate-200/70 p-1 rounded-xl">
+            <button
+              onClick={() => setViewType("calendar")}
+              className={`px-3 py-1.5 text-xs font-extrabold rounded-lg transition-all ${
+                viewType === "calendar" ? "bg-[#1E1B4B] text-white shadow-xs" : "text-slate-600 hover:text-[#1E1B4B]"
+              }`}
+            >
+              📅 Görsel Takvim
+            </button>
+            <button
+              onClick={() => setViewType("list")}
+              className={`px-3 py-1.5 text-xs font-extrabold rounded-lg transition-all ${
+                viewType === "list" ? "bg-[#1E1B4B] text-white shadow-xs" : "text-slate-600 hover:text-[#1E1B4B]"
+              }`}
+            >
+              📋 Liste Akışı
+            </button>
+          </div>
+          <button 
+            onClick={() => setShowAddModal(true)} 
+            className="btn-primary text-xs py-2.5 px-4 shadow-sm"
+          >
+            ➕ Yeni Randevu Ekle
+          </button>
+        </div>
       </div>
 
       {/* Personel Bazlı Doluluk & Performans Kartları */}
@@ -247,28 +269,46 @@ export default function AppointmentsPage() {
         </div>
       </div>
 
-      {/* Randevu Kartları Akışı */}
-      <div className="space-y-3">
-        {filteredAppointments.length > 0 ? (
-          filteredAppointments.map((apt) => (
-            <AppointmentCard 
-              key={apt.id} 
-              appointment={apt} 
-              onUpdateStatus={(id, status) => {
-                const updated = appointments.map(a => a.id === id ? { ...a, status } : a);
-                setAppointments(updated);
-                localStorage.setItem("glowdesk_appointments", JSON.stringify(updated));
-              }}
-            />
-          ))
-        ) : (
-          <div className="brand-card p-12 text-center text-slate-500 space-y-2 bg-white">
-            <p className="text-3xl">📅</p>
-            <p className="text-sm font-bold text-[#1E1B4B]">Henüz Randevu Bulunmuyor</p>
-            <p className="text-xs">Sisteme kaydolan yeni randevular burada listelenecektir.</p>
-          </div>
-        )}
-      </div>
+      {/* Dynamic Main View: Calendar or List */}
+      {viewType === "calendar" ? (
+        <CalendarView
+          appointments={filteredAppointments}
+          onSelectSlot={(date, time, ws) => {
+            setAppointmentDate(date);
+            setAppointmentTime(time);
+            setSelectedWorkstation(ws);
+            setShowAddModal(true);
+          }}
+          onUpdateStatus={(id, status) => {
+            const updated = appointments.map(a => a.id === id ? { ...a, status } : a);
+            setAppointments(updated);
+            localStorage.setItem("glowdesk_appointments", JSON.stringify(updated));
+          }}
+        />
+      ) : (
+        /* Randevu Kartları Akışı */
+        <div className="space-y-3">
+          {filteredAppointments.length > 0 ? (
+            filteredAppointments.map((apt) => (
+              <AppointmentCard 
+                key={apt.id} 
+                appointment={apt} 
+                onUpdateStatus={(id, status) => {
+                  const updated = appointments.map(a => a.id === id ? { ...a, status } : a);
+                  setAppointments(updated);
+                  localStorage.setItem("glowdesk_appointments", JSON.stringify(updated));
+                }}
+              />
+            ))
+          ) : (
+            <div className="brand-card p-12 text-center text-slate-500 space-y-2 bg-white">
+              <p className="text-3xl">📅</p>
+              <p className="text-sm font-bold text-[#1E1B4B]">Henüz Randevu Bulunmuyor</p>
+              <p className="text-xs">Sisteme kaydolan yeni randevular burada listelenecektir.</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Yeni Randevu Ekleme Modalı */}
       {showAddModal && (

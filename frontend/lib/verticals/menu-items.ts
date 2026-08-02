@@ -10,6 +10,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
   salon: [
     { href: '/dashboard', label: 'Bugün Kimler Var?', iconKey: 'IconHome', minRole: 'staff' },
     { href: '/appointments', label: 'Randevu Takvimi', iconKey: 'IconCalendar', minRole: 'staff' },
+    { href: '/notifications', label: 'Bildirim Logları', iconKey: 'IconInbox', minRole: 'owner' },
     { href: '/waitlist', label: 'No-Show Motoru', iconKey: 'IconInbox', minRole: 'staff' },
     { href: '/customers', label: 'Müşteriler', iconKey: 'IconUsers', minRole: 'owner' },
     { href: '/services', label: 'Hizmetler', iconKey: 'IconSparkles', minRole: 'owner' },
