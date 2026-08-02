@@ -23,6 +23,7 @@ def create_access_token(
     email: str,
     full_name: str,
     tenant_id: Optional[str] = None,
+    sector: Optional[str] = None,
     expires_delta: Optional[timedelta] = None
 ) -> str:
     if expires_delta:
@@ -37,6 +38,7 @@ def create_access_token(
         "email": email,
         "fullName": full_name,
         "tenantId": tenant_id,
+        "sector": sector,
         "exp": int(expire.timestamp()),
         "iat": int(datetime.utcnow().timestamp())
     }

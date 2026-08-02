@@ -2,19 +2,31 @@
 
 import { useState, useMemo } from "react";
 import type { Appointment, AppointmentStatus } from "@/lib/types";
+import { useTenant } from "@/contexts/TenantContext";
 
 interface CalendarViewProps {
   appointments: Appointment[];
+  customWorkstations?: string[];
   onSelectSlot?: (date: string, time: string, workstation: string) => void;
   onUpdateStatus?: (id: string, status: AppointmentStatus) => void;
 }
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 08:00 - 20:00
-const WORKSTATIONS = [
-  "1. Koltuk (Ahmet Usta)",
-  "2. Koltuk (Mehmet Kalfa)",
-  "VİP Bakım Odası",
-];
+
+const SECTOR_DEFAULT_WORKSTATIONS: Record<string, string[]> = {
+  legal: ["1. Danışmanlık Masası", "2. Görüşme Masası", "Toplantı Odası"],
+  hukuk: ["1. Danışmanlık Masası", "2. Görüşme Masası", "Toplantı Odası"],
+  clinic: ["1. Muayene Odası", "2. Muayene Odası", "Diş / Tedavi Üniti"],
+  auto: ["1. Lift", "2. Lift", "Yıkama & Detailing Pedi"],
+  fitness: ["Reformer Pilates 1", "Stüdyo A"],
+  vet: ["Muayene Masası 1", "Pet Grooming Pedi"],
+  coaching: ["Seans Odası 1", "Seans Odası 2"],
+  photo: ["Plato A (Beyaz Fon)", "Plato B (Gün Işığı)"],
+  spa: ["Masaj Odası 1", "VIP Spa Suiti"],
+  coworking: ["Toplantı Odası A", "Toplantı Odası B"],
+  restoran: ["Masa 1 (Salon)", "Masa 2 (Teras)"],
+  salon: ["1. Koltuk", "2. Koltuk", "VİP Bakım Odası"],
+};
 
 const STATUS_COLORS: Record<AppointmentStatus, { bg: string; border: string; text: string; label: string }> = {
   confirmed: { bg: "bg-emerald-50 hover:bg-emerald-100", border: "border-emerald-400", text: "text-emerald-800", label: "Onaylandı" },
@@ -24,17 +36,27 @@ const STATUS_COLORS: Record<AppointmentStatus, { bg: string; border: string; tex
   cancelled: { bg: "bg-slate-100 hover:bg-slate-200", border: "border-slate-300", text: "text-slate-600", label: "İptal" },
 };
 
-export default function CalendarView({ appointments, onSelectSlot, onUpdateStatus }: CalendarViewProps) {
+export default function CalendarView({ appointments, customWorkstations, onSelectSlot, onUpdateStatus }: CalendarViewProps) {
+  const { vertical, tenant } = useTenant();
   const [currentDate, setCurrentDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [viewMode, setViewMode] = useState<"day" | "week">("day");
   const [selectedWorkstationFilter, setSelectedWorkstationFilter] = useState<string>("all");
   const [activeAppointment, setActiveAppointment] = useState<Appointment | null>(null);
 
+  // Compute workstations dynamically
+  const workstationsList = useMemo(() => {
+    if (customWorkstations && customWorkstations.length > 0) return customWorkstations;
+    if (tenant?.settings?.workstations && tenant.settings.workstations.length > 0) {
+      return tenant.settings.workstations.filter((w) => w.is_active).map((w) => w.name);
+    }
+    return SECTOR_DEFAULT_WORKSTATIONS[vertical] || SECTOR_DEFAULT_WORKSTATIONS.salon;
+  }, [customWorkstations, tenant, vertical]);
+
   // Filter workstations based on selected filter
   const visibleWorkstations = useMemo(() => {
-    if (selectedWorkstationFilter === "all") return WORKSTATIONS;
-    return WORKSTATIONS.filter((w) => w.includes(selectedWorkstationFilter));
-  }, [selectedWorkstationFilter]);
+    if (selectedWorkstationFilter === "all") return workstationsList;
+    return workstationsList.filter((w) => w.includes(selectedWorkstationFilter));
+  }, [selectedWorkstationFilter, workstationsList]);
 
   // Date Navigation Helpers
   const handlePrevDay = () => {
@@ -108,16 +130,17 @@ export default function CalendarView({ appointments, onSelectSlot, onUpdateStatu
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Workstation Filter */}
           <select
             value={selectedWorkstationFilter}
             onChange={(e) => setSelectedWorkstationFilter(e.target.value)}
             className="input-dark bg-white py-1.5 px-3 text-xs w-auto border-slate-200"
           >
-            <option value="all">Tüm Koltuklar/Odalar</option>
-            <option value="1. Koltuk">1. Koltuk (Ahmet Usta)</option>
-            <option value="2. Koltuk">2. Koltuk (Mehmet Kalfa)</option>
-            <option value="VİP">VİP Bakım Odası</option>
+            <option value="all">Tüm İstasyonlar / Odalar</option>
+            {workstationsList.map((ws) => (
+              <option key={ws} value={ws}>
+                {ws}
+              </option>
+            ))}
           </select>
 
           {/* View Mode Toggle */}

@@ -23,6 +23,7 @@ export const VERTICAL_CONFIG: Record<VerticalKey, VerticalDefinition> = {
     serviceLabel: 'Hizmet',
     pricingBadge: 'Personel & Koltuk Bazlı SaaS',
     pricingModelDescription: 'Aylık sabit abonelik paketi. Sınırsız müşteri ve SMS bildirim desteği.',
+    settingsTitle: 'Salon Ayarları',
   },
 
   // ── 2. Diş Klinikleri ve Poliklinikler ──────────────────────────────────────
@@ -42,6 +43,7 @@ export const VERTICAL_CONFIG: Record<VerticalKey, VerticalDefinition> = {
     serviceLabel: 'İşlem / Protokol',
     pricingBadge: 'Koltuk / Ünit Bazlı SaaS',
     pricingModelDescription: 'Klinik koltuk sayısına göre ölçeklenen kurumsal paket.',
+    settingsTitle: 'Klinik Ayarları',
   },
 
   // ── 3. Oto Servis & Detaylı Temizlik ───────────────────────────────────────

@@ -26,6 +26,7 @@ interface RegisteredTenant {
   status: "active" | "suspended" | "onboarding";
   mrr_amount: number;
   free_until?: string; // e.g. "2028-01-01"
+  suspended_until?: string; // e.g. "2026-09-15" (Dondurma Bitiş Tarihi)
   created_at: string;
 }
 
@@ -37,6 +38,7 @@ interface RegisteredUser {
   role: UserRole;
   businessName?: string;
   status?: "active" | "banned";
+  banned_until?: string; // e.g. "2026-09-15" (Engelleme Bitiş Tarihi)
   createdAt: string;
 }
 
@@ -364,6 +366,37 @@ export default function AdminDashboardPage() {
     localStorage.setItem("glowdesk_registered_tenants", JSON.stringify(updated));
   };
 
+  // Salon Sektörünü Değiştirme (Hukuk, Klinik, Oto, Fitness, Güzellik vb.)
+  const handleChangeTenantSector = async (tenantId: string, newSector: string) => {
+    const updated = tenants.map((t) => {
+      if (t.id === tenantId) {
+        logger.info(`İşletme sektörü güncellendi: ${t.name} -> ${newSector}`, "AdminTenantControl");
+        return { ...t, sector: newSector };
+      }
+      return t;
+    });
+    setTenants(updated);
+    localStorage.setItem("glowdesk_registered_tenants", JSON.stringify(updated));
+
+    try {
+      const { apiRequest } = await import("@/lib/api-client");
+      await apiRequest(`/tenants/${tenantId}`, {
+        method: "PUT",
+        body: JSON.stringify({ sector: newSector }),
+      });
+    } catch (e) {
+      console.warn("Update tenant sector API warning:", e);
+    }
+  };
+
+  // Hızlı Promosyon Süre Uzatma Presets (+1 Ay, +6 Ay, +1 Yıl)
+  const handleQuickPromoExtension = (tenantId: string, monthsToAdd: number) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + monthsToAdd);
+    const dateStr = d.toISOString().split("T")[0];
+    handleSetTenantFreeUntil(tenantId, dateStr);
+  };
+
   // Salon Abonelik Paketini Değiştirme (Starter, Pro, Enterprise)
   const handleChangeTenantTier = (tenantId: string, newTier: "starter" | "pro" | "enterprise") => {
     const updated = tenants.map((t) => {
@@ -556,6 +589,69 @@ export default function AdminDashboardPage() {
     } catch (err) {
       console.error("User save edit error:", err);
     }
+  };
+
+  // Kullanıcı Hesabı Süreli Dondurma / Engelleme (7 Gün, 30 Gün, 90 Gün veya Özel Tarih)
+  const handleSetUserBanUntil = async (userId: string, banDate?: string, daysPreset?: number) => {
+    const targetUser = users.find((u) => u.id === userId);
+    if (!targetUser) return;
+
+    let targetDateStr = banDate || "";
+    if (daysPreset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysPreset);
+      targetDateStr = d.toISOString().split("T")[0];
+    }
+
+    const nextStatus: RegisteredUser["status"] = targetDateStr || daysPreset ? "banned" : targetUser.status === "banned" ? "active" : "banned";
+    const finalBanDate = nextStatus === "banned" ? targetDateStr || undefined : undefined;
+
+    try {
+      const { apiRequest } = await import('@/lib/api-client');
+      await apiRequest(`/users/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: nextStatus, banned_until: finalBanDate }),
+      });
+
+      const updated = users.map((u) => (u.id === userId ? { ...u, status: nextStatus, banned_until: finalBanDate } : u));
+      setUsers(updated);
+      setUserSaveSuccess(true);
+      setTimeout(() => setUserSaveSuccess(false), 3000);
+      logger.info(`Kullanıcı süreli engellendi: ${targetUser.fullName} -> Bitiş: ${finalBanDate || "Süresiz/Aktif"}`, "AdminUserControl");
+    } catch (err) {
+      console.error("User ban date update error:", err);
+    }
+  };
+
+  // İşletme Hesabı Süreli Dondurma (7 Gün, 30 Gün, 90 Gün veya Özel Tarih)
+  const handleSetTenantSuspendedUntil = async (tenantId: string, suspendDate?: string, daysPreset?: number) => {
+    const targetTenant = tenants.find((t) => t.id === tenantId);
+    if (!targetTenant) return;
+
+    let targetDateStr = suspendDate || "";
+    if (daysPreset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysPreset);
+      targetDateStr = d.toISOString().split("T")[0];
+    }
+
+    const nextStatus: RegisteredTenant["status"] = targetDateStr || daysPreset ? "suspended" : targetTenant.status === "suspended" ? "active" : "suspended";
+    const finalSuspendDate = nextStatus === "suspended" ? targetDateStr || undefined : undefined;
+
+    const updated = tenants.map((t) => (t.id === tenantId ? { ...t, status: nextStatus, suspended_until: finalSuspendDate } : t));
+    setTenants(updated);
+    localStorage.setItem("glowdesk_registered_tenants", JSON.stringify(updated));
+
+    try {
+      const { apiRequest } = await import('@/lib/api-client');
+      await apiRequest(`/tenants/${tenantId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: nextStatus, suspended_until: finalSuspendDate }),
+      });
+    } catch (e) {
+      console.warn("Tenant freeze date API warning:", e);
+    }
+    logger.info(`İşletme dondurma tarihi ayarlandı: ${targetTenant.name} -> Bitiş: ${finalSuspendDate || "Süresiz/Aktif"}`, "AdminTenantControl");
   };
 
   const handleToggleUserBan = async (userId: string, userName: string) => {
@@ -900,7 +996,27 @@ export default function AdminDashboardPage() {
                           {t.name}
                           <span className="block text-[10px] font-normal text-slate-400">/{t.slug}</span>
                         </td>
-                        <td className="p-4 font-bold text-cyan-700 uppercase">{t.sector}</td>
+                        <td className="p-4">
+                          <select
+                            value={t.sector}
+                            onChange={(e) => handleChangeTenantSector(t.id, e.target.value)}
+                            className="input-dark bg-white py-1 px-2 text-xs w-auto font-bold text-cyan-800"
+                          >
+                            <option value="legal">⚖️ Hukuk</option>
+                            <option value="clinic">🩺 Klinik</option>
+                            <option value="beauty">💄 Güzellik</option>
+                            <option value="barber">💈 Berber</option>
+                            <option value="spa">💆 Spa</option>
+                            <option value="auto">🚗 Oto Servis</option>
+                            <option value="fitness">💪 Fitness</option>
+                            <option value="vet">🐾 Veteriner</option>
+                            <option value="coaching">📚 Danışmanlık</option>
+                            <option value="photo">📸 Fotoğraf</option>
+                            <option value="coworking">🏢 Coworking</option>
+                            <option value="driving">🚘 Sürücü Kursu</option>
+                            <option value="restoran">🍽️ Restoran</option>
+                          </select>
+                        </td>
                         <td className="p-4">{t.city} / {t.district || "Şişli"}</td>
                         <td className="p-4">
                           <select
@@ -914,32 +1030,106 @@ export default function AdminDashboardPage() {
                           </select>
                           <span className="text-[10px] text-emerald-600 font-bold mt-1 block">₺{t.mrr_amount}/Ay MRR</span>
                         </td>
-                        <td className="p-4">
-                          <input
-                            type="date"
-                            min={new Date().toISOString().split("T")[0]}
-                            value={t.free_until || ""}
-                            onChange={(e) => handleSetTenantFreeUntil(t.id, e.target.value)}
-                            className="input-dark text-xs py-1 px-2 w-auto bg-white font-bold"
-                          />
+                        <td className="p-4 space-y-1">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="date"
+                              min={new Date().toISOString().split("T")[0]}
+                              value={t.free_until || ""}
+                              onChange={(e) => handleSetTenantFreeUntil(t.id, e.target.value)}
+                              className="input-dark text-xs py-1 px-2 w-auto bg-white font-bold"
+                            />
+                            <div className="flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleQuickPromoExtension(t.id, 1)}
+                                className="px-1.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded text-[9px] font-bold"
+                                title="+1 Ay Hediye Et"
+                              >
+                                +1A
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickPromoExtension(t.id, 6)}
+                                className="px-1.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded text-[9px] font-bold"
+                                title="+6 Ay Hediye Et"
+                              >
+                                +6A
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickPromoExtension(t.id, 12)}
+                                className="px-1.5 py-1 bg-[#0066FF] text-white rounded text-[9px] font-bold shadow-xs"
+                                title="+1 Yıl Hediye Et"
+                              >
+                                +1Y
+                              </button>
+                            </div>
+                          </div>
                           {t.free_until && new Date(t.free_until) > new Date() ? (
-                            <span className="text-[10px] text-cyan-600 font-extrabold mt-1 block">
+                            <span className="text-[10px] text-cyan-600 font-extrabold block">
                               🎁 {new Date(t.free_until).toLocaleDateString("tr-TR")}&apos;ye kadar Ücretsiz
                             </span>
                           ) : (
-                            <span className="text-[10px] text-slate-400 mt-1 block">Tarih Seçilmedi</span>
+                            <span className="text-[10px] text-slate-400 block">Promo Tarihi Yok</span>
                           )}
                         </td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border ${
+                        <td className="p-4 space-y-1">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border inline-block ${
                             t.status === "active" ? "bg-emerald-100 text-emerald-800 border-emerald-200" :
                             t.status === "suspended" ? "bg-rose-100 text-rose-800 border-rose-200" :
                             "bg-amber-100 text-amber-800 border-amber-200"
                           }`}>
                             {t.status === "active" ? "● Aktif" : t.status === "suspended" ? "🔒 Donduruldu" : "⏳ Kurulumda"}
                           </span>
+                          {t.status === "suspended" && t.suspended_until && (
+                            <span className="text-[10px] text-rose-600 font-bold block">
+                              ⏳ Bitiş: {new Date(t.suspended_until).toLocaleDateString("tr-TR")}
+                            </span>
+                          )}
+                          <div className="flex items-center gap-1 pt-0.5">
+                            <button
+                              type="button"
+                              onClick={() => handleSetTenantSuspendedUntil(t.id, undefined, 7)}
+                              className="px-1.5 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded text-[9px] font-bold"
+                              title="7 Gün Dondur"
+                            >
+                              7G
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSetTenantSuspendedUntil(t.id, undefined, 30)}
+                              className="px-1.5 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded text-[9px] font-bold"
+                              title="30 Gün Dondur"
+                            >
+                              30G
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSetTenantSuspendedUntil(t.id, undefined, 90)}
+                              className="px-1.5 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded text-[9px] font-bold"
+                              title="90 Gün Dondur"
+                            >
+                              90G
+                            </button>
+                            <input
+                              type="date"
+                              min={new Date().toISOString().split("T")[0]}
+                              value={t.suspended_until || ""}
+                              onChange={(e) => handleSetTenantSuspendedUntil(t.id, e.target.value)}
+                              className="input-dark text-[10px] py-0.5 px-1.5 w-auto bg-white font-bold"
+                              title="Özel Dondurma Bitiş Tarihi Seç"
+                            />
+                          </div>
                         </td>
-                        <td className="p-4 text-right space-x-2">
+                        <td className="p-4 text-right space-x-1.5">
+                          <button
+                            onClick={() => handleImpersonateTenant(t)}
+                            className="px-2.5 py-1.5 rounded-xl font-extrabold text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-all"
+                            title="Bu salonun canlı paneline Super Admin olarak bürün"
+                          >
+                            🔍 Bürün
+                          </button>
 
                           <button
                             onClick={() => handleToggleTenantStatus(t.id)}
@@ -1051,14 +1241,55 @@ export default function AdminDashboardPage() {
                           <option value="customer">👤 Müşteri</option>
                         </select>
                       </td>
-                      <td className="p-4">
-                        <span className={`px-2 py-0.5 rounded font-extrabold text-[10px] uppercase border ${
-                          u.status === "banned"
-                            ? "bg-rose-100 text-rose-800 border-rose-200"
-                            : "bg-emerald-100 text-emerald-800 border-emerald-200"
-                        }`}>
-                          {u.status === "banned" ? "🔒 Engelli" : "● Aktif"}
-                        </span>
+                      <td className="p-4 space-y-1">
+                        <div className="flex items-center gap-1">
+                          <span className={`px-2 py-0.5 rounded font-extrabold text-[10px] uppercase border ${
+                            u.status === "banned"
+                              ? "bg-rose-100 text-rose-800 border-rose-200"
+                              : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                          }`}>
+                            {u.status === "banned" ? "🔒 Engelli" : "● Aktif"}
+                          </span>
+                        </div>
+                        {u.status === "banned" && u.banned_until && (
+                          <span className="text-[10px] text-rose-600 font-bold block">
+                            ⏳ Bitiş: {new Date(u.banned_until).toLocaleDateString("tr-TR")}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-1 pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleSetUserBanUntil(u.id, undefined, 7)}
+                            className="px-1.5 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[9px] font-bold"
+                            title="7 Gün Engelle"
+                          >
+                            7G
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSetUserBanUntil(u.id, undefined, 30)}
+                            className="px-1.5 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[9px] font-bold"
+                            title="30 Gün Engelle"
+                          >
+                            30G
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSetUserBanUntil(u.id, undefined, 90)}
+                            className="px-1.5 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[9px] font-bold"
+                            title="90 Gün Engelle"
+                          >
+                            90G
+                          </button>
+                          <input
+                            type="date"
+                            min={new Date().toISOString().split("T")[0]}
+                            value={u.banned_until || ""}
+                            onChange={(e) => handleSetUserBanUntil(u.id, e.target.value)}
+                            className="input-dark text-[10px] py-0.5 px-1.5 w-auto bg-white font-bold"
+                            title="Özel Bitiş Tarihi Seç"
+                          />
+                        </div>
                       </td>
                       <td className="p-4 text-right space-x-1.5">
                         <button

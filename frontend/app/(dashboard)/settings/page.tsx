@@ -262,7 +262,9 @@ export default function SettingsPage() {
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-[#1E1B4B]">Salon Ayarları</h1>
+          <h1 className="text-2xl font-extrabold font-display text-[#1E1B4B]">
+            {verticalConfig?.settingsTitle || "İşletme Ayarları"}
+          </h1>
           <p className="text-slate-500 text-xs mt-0.5">İşletmenizin profilini, detaylı adres bilgilerini ve çalışma saatlerini düzenleyin.</p>
         </div>
 
@@ -346,13 +348,21 @@ export default function SettingsPage() {
                 <select
                   value={sector}
                   onChange={(e) => setSector(e.target.value as BusinessSector)}
-                  className="input-dark bg-white"
+                  className="input-dark bg-white font-bold"
                 >
-                  <option value="barber">Berber & Erkek Kuaförü</option>
-                  <option value="beauty">Güzellik Salonu</option>
-                  <option value="spa">Cilt Bakımı & Spa</option>
-                  <option value="massage">Masaj & Terapi</option>
-                  <option value="clinic">Klinik & Özel Terapi</option>
+                  <option value="legal">⚖️ Hukuk Bürosu & Danışmanlık</option>
+                  <option value="clinic">🩺 Klinik & Poliklinik</option>
+                  <option value="beauty">💄 Güzellik & Bakım Salonu</option>
+                  <option value="barber">💈 Berber & Erkek Kuaförü</option>
+                  <option value="spa">💆 Spa & Masaj Salonu</option>
+                  <option value="auto">🚗 Oto Servis & Detailing</option>
+                  <option value="fitness">💪 Fitness & Pilates Stüdyosu</option>
+                  <option value="vet">🐾 Veteriner Kliniği & Pet Grooming</option>
+                  <option value="coaching">📚 Özel Ders & Psikolojik Danışmanlık</option>
+                  <option value="photo">📸 Fotoğraf Stüdyosu & Kiralama</option>
+                  <option value="coworking">🏢 Toplantı Odası & Coworking</option>
+                  <option value="driving">🚘 Sürücü Kursu & Direksiyon</option>
+                  <option value="restoran">🍽️ Restoran & Kafe</option>
                 </select>
               </div>
             </div>
@@ -690,6 +700,90 @@ export default function SettingsPage() {
               </div>
             </div>
 
+            {/* 💬 ENTERPRISE: WhatsApp Business Cloud API & No-Show Otomasyon Motoru */}
+            <div className="pt-6 border-t border-slate-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-extrabold uppercase text-purple-900 tracking-wider flex items-center gap-1.5">
+                    💬 WhatsApp Business Cloud API & No-Show Motoru
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Müşterilerinize WhatsApp üzerinden 24 saat ve 2 saat önce interaktif butonlu (Evet Geliyorum / İptal Et) teyit mesajları gönderin.
+                  </p>
+                </div>
+                <span className="text-[10px] font-black uppercase bg-[#0066FF] text-white px-3 py-1 rounded-full shadow-xs">
+                  👑 Kurumsal VIP (Enterprise)
+                </span>
+              </div>
+
+              {tenant?.subscription_tier !== "enterprise" ? (
+                <div className="p-5 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white rounded-2xl border border-purple-800/60 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🔒</span>
+                    <h5 className="font-extrabold text-xs text-purple-200">WhatsApp Business API Şartı</h5>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                    Resmi Meta WhatsApp Business Cloud API bağlama ve otomatik No-Show Engelleme Motoru yalnızca **Enterprise VIP (Kurumsal VIP)** paket sahiplerine açıktır.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm("GlowDesk Enterprise (Kurumsal VIP) pakete yükseltmek istediğinize emin misiniz?")) {
+                        window.location.href = "/admin?tab=tenants";
+                      }
+                    }}
+                    className="py-2.5 px-5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black rounded-xl text-xs shadow-md hover:scale-105 transition-all"
+                  >
+                    ⚡ Enterprise VIP Pakete Yükselt →
+                  </button>
+                </div>
+              ) : (
+                <div className="p-4 bg-purple-50/60 border border-purple-200 rounded-2xl space-y-3 text-xs font-sans">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-purple-950 text-xs">✓ Meta WhatsApp Cloud API Entegrasyon Bilgileri</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      ● No-Show Motoru Aktif
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">WhatsApp Phone Number ID *</label>
+                      <input
+                        type="text"
+                        placeholder="ör. 109283749182374"
+                        defaultValue="109283749182374"
+                        className="input-dark bg-white text-xs font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">WhatsApp Business Account ID (WABA) *</label>
+                      <input
+                        type="text"
+                        placeholder="ör. 987654321012345"
+                        defaultValue="987654321012345"
+                        className="input-dark bg-white text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase mb-1">Meta Permanent System User Access Token *</label>
+                    <input
+                      type="password"
+                      defaultValue="EAAGm0PX4ZK0BA..."
+                      className="input-dark bg-white text-xs font-mono"
+                    />
+                  </div>
+
+                  <div className="p-3 bg-emerald-950 text-white rounded-xl space-y-1 text-[11px] font-mono">
+                    <p className="font-bold text-emerald-400">🤖 No-Show Motoru Canlı Test Modunda:</p>
+                    <p>Müşteri randevuya 2 saat kala WhatsApp teyit mesajı alır. Cevap vermezse sıra otomatik bekleme listesindekine aktarılır.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* 🔑 ENTERPRISE: API Keys & Webhooks */}
             <div className="pt-6 border-t border-slate-200 space-y-4">
               <div className="flex items-center justify-between">
@@ -796,7 +890,7 @@ export default function SettingsPage() {
           <span className="text-xl animate-bounce">💾</span>
           <div>
             <h4 className="text-xs font-extrabold font-display">Yaptığınız değişiklikleri kaydetmeyi unutmayın</h4>
-            <p className="text-[11px] text-slate-300">Tüm adres, şube, çalışma saatleri ve API ayarlarınız tek tıkla MySQL veritabanına yazılır.</p>
+            <p className="text-[11px] text-slate-300">Tüm adres, şube, çalışma saatleri ve API ayarlarınız tek tıkla kaydedilir.</p>
           </div>
         </div>
         <div className="flex items-center gap-3">

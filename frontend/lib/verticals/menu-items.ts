@@ -14,6 +14,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/waitlist', label: 'No-Show Motoru', iconKey: 'IconInbox', minRole: 'staff' },
     { href: '/customers', label: 'Müşteriler', iconKey: 'IconUsers', minRole: 'owner' },
     { href: '/services', label: 'Hizmetler', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Salon Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 
@@ -73,6 +74,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/appointments', label: 'Dava Takvimi', iconKey: 'IconCalendar', minRole: 'staff' },
     { href: '/customers', label: 'Müvekkiller', iconKey: 'IconUsers', minRole: 'owner' },
     { href: '/services', label: 'Danışmanlık Paketleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Büro Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
   hukuk: [
@@ -80,6 +82,7 @@ export const VERTICAL_MENU_ITEMS: Record<VerticalKey, MenuItem[]> = {
     { href: '/appointments', label: 'Dava Takvimi', iconKey: 'IconCalendar', minRole: 'staff' },
     { href: '/customers', label: 'Müvekkiller', iconKey: 'IconUsers', minRole: 'owner' },
     { href: '/services', label: 'Danışmanlık Paketleri', iconKey: 'IconSparkles', minRole: 'owner' },
+    { href: '/finance', label: 'Gelir & Gider Kasa', iconKey: 'IconCreditCard', minRole: 'owner' },
     { href: '/settings', label: 'Büro Ayarları', iconKey: 'IconSettings', minRole: 'owner' },
   ],
 

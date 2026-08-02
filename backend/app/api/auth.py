@@ -21,12 +21,16 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Kullanıcı hesabı pasif durumda.")
 
+    tenant = db.query(Tenant).filter(Tenant.id == user.tenant_id).first() if user.tenant_id else None
+    tenant_sector = tenant.sector if tenant else "legal"
+
     token = create_access_token(
         subject=user.id,
         role=user.role,
         email=user.email,
         full_name=user.full_name,
-        tenant_id=user.tenant_id
+        tenant_id=user.tenant_id,
+        sector=tenant_sector
     )
 
     user_payload = {
@@ -35,7 +39,9 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         "fullName": user.full_name,
         "role": user.role,
         "tenantId": user.tenant_id,
-        "phone": user.phone
+        "phone": user.phone,
+        "sector": tenant_sector,
+        "businessName": tenant.name if tenant else None,
     }
 
     return {"access_token": token, "token_type": "bearer", "user": user_payload}
@@ -53,7 +59,7 @@ def register_business(payload: RegisterBusinessRequest, db: Session = Depends(ge
     tenant = Tenant(
         name=payload.businessName,
         slug=slug,
-        sector=payload.sector,
+        sector=payload.sector or "legal",
         phone=payload.phone,
         email=payload.email,
         address=payload.address or (f"{payload.neighborhood or ''} {payload.street or ''}, {payload.district}/{payload.city}".strip()),
@@ -88,7 +94,8 @@ def register_business(payload: RegisterBusinessRequest, db: Session = Depends(ge
         role=user.role,
         email=user.email,
         full_name=user.full_name,
-        tenant_id=tenant.id
+        tenant_id=tenant.id,
+        sector=tenant.sector
     )
 
     return {
@@ -101,6 +108,7 @@ def register_business(payload: RegisterBusinessRequest, db: Session = Depends(ge
             "role": user.role,
             "tenantId": tenant.id,
             "businessName": tenant.name,
+            "sector": tenant.sector,
             "city": tenant.city,
             "district": tenant.district,
             "neighborhood": tenant.neighborhood,

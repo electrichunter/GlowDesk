@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import AppointmentCard from "@/components/dashboard/AppointmentCard";
 import CalendarView from "@/components/dashboard/CalendarView";
 import type { Appointment, AppointmentStatus, Customer, Service } from "@/lib/types";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { useTenant } from "@/contexts/TenantContext";
 
 export default function AppointmentsPage() {
+  const { vertical, verticalConfig, tenant } = useTenant();
   const [loading, setLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -16,6 +18,27 @@ export default function AppointmentsPage() {
   const [viewType, setViewType] = useState<"list" | "calendar">("calendar");
   const [statusFilter, setStatusFilter] = useState<"all" | AppointmentStatus>("all");
   const [staffFilter, setStaffFilter] = useState<string>("all");
+
+  const activeWorkstations = useMemo(() => {
+    if (tenant?.settings?.workstations && tenant.settings.workstations.length > 0) {
+      return tenant.settings.workstations.filter((w) => w.is_active).map((w) => w.name);
+    }
+    const defaults: Record<string, string[]> = {
+      legal: ["1. Danışmanlık Masası", "2. Görüşme Masası", "Toplantı Odası"],
+      hukuk: ["1. Danışmanlık Masası", "2. Görüşme Masası", "Toplantı Odası"],
+      clinic: ["1. Muayene Odası", "2. Muayene Odası", "Diş / Tedavi Üniti"],
+      auto: ["1. Lift", "2. Lift", "Yıkama & Detailing Pedi"],
+      fitness: ["Reformer Pilates 1", "Stüdyo A"],
+      vet: ["Muayene Masası 1", "Pet Grooming Pedi"],
+      coaching: ["Seans Odası 1", "Seans Odası 2"],
+      photo: ["Plato A (Beyaz Fon)", "Plato B (Gün Işığı)"],
+      spa: ["Masaj Odası 1", "VIP Spa Suiti"],
+      coworking: ["Toplantı Odası A", "Toplantı Odası B"],
+      restoran: ["Masa 1 (Salon)", "Masa 2 (Teras)"],
+      salon: ["1. Koltuk", "2. Koltuk", "VİP Bakım Odası"],
+    };
+    return defaults[vertical] || defaults.salon;
+  }, [tenant, vertical]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -199,31 +222,23 @@ export default function AppointmentsPage() {
         </div>
       </div>
 
-      {/* Personel Bazlı Doluluk & Performans Kartları */}
+      {/* Personel / İstasyon Bazlı Doluluk & Performans Kartları */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="brand-card p-5 bg-white border-l-4 border-l-cyan-500 space-y-1">
-          <span className="text-xs font-bold text-slate-400 uppercase">1. Koltuk (Ahmet Usta)</span>
-          <div className="text-2xl font-black text-[#1E1B4B]">
-            {appointments.filter(a => a.notes?.includes("1. Koltuk") || !a.notes).length} Seans
-          </div>
-          <span className="text-[10px] text-emerald-600 font-bold">Gerçekleşen Randevular</span>
-        </div>
+        {activeWorkstations.map((ws, idx) => {
+          const borderColors = ["border-l-cyan-500", "border-l-purple-500", "border-l-amber-500", "border-l-emerald-500"];
+          const colorClass = borderColors[idx % borderColors.length];
+          const count = appointments.filter((a) => a.notes?.includes(ws.split(" ")[0]) || (idx === 0 && !a.notes)).length;
 
-        <div className="brand-card p-5 bg-white border-l-4 border-l-purple-500 space-y-1">
-          <span className="text-xs font-bold text-slate-400 uppercase">2. Koltuk (Mehmet Kalfa)</span>
-          <div className="text-2xl font-black text-[#1E1B4B]">
-            {appointments.filter(a => a.notes?.includes("2. Koltuk")).length} Seans
-          </div>
-          <span className="text-[10px] text-cyan-600 font-bold">Gerçekleşen Randevular</span>
-        </div>
-
-        <div className="brand-card p-5 bg-white border-l-4 border-l-amber-500 space-y-1">
-          <span className="text-xs font-bold text-slate-400 uppercase">VİP Bakım Odası</span>
-          <div className="text-2xl font-black text-[#1E1B4B]">
-            {appointments.filter(a => a.notes?.includes("VİP")).length} Seans
-          </div>
-          <span className="text-[10px] text-amber-600 font-bold">Gerçekleşen Randevular</span>
-        </div>
+          return (
+            <div key={ws} className={`brand-card p-5 bg-white border-l-4 ${colorClass} space-y-1`}>
+              <span className="text-xs font-bold text-slate-400 uppercase">{ws}</span>
+              <div className="text-2xl font-black text-[#1E1B4B]">
+                {count} {verticalConfig?.appointmentLabel || "Randevu"}
+              </div>
+              <span className="text-[10px] text-emerald-600 font-bold">Aktif Çalışma Seansı</span>
+            </div>
+          );
+        })}
       </div>
 
       {/* Randevu Filtreleme Barı */}
@@ -254,16 +269,18 @@ export default function AppointmentsPage() {
 
           {/* Staff Filter */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500">Koltuk/Personel:</span>
+            <span className="text-xs font-bold text-slate-500">İstasyon/Personel:</span>
             <select
               value={staffFilter}
               onChange={(e) => setStaffFilter(e.target.value)}
               className="input-dark bg-white py-1 px-3 text-xs w-auto"
             >
-              <option value="all">Tüm Personeller</option>
-              <option value="1. Koltuk">1. Koltuk (Ahmet Usta)</option>
-              <option value="2. Koltuk">2. Koltuk (Mehmet Kalfa)</option>
-              <option value="VİP">VİP Bakım Odası</option>
+              <option value="all">Tüm İstasyonlar</option>
+              {activeWorkstations.map((ws) => (
+                <option key={ws} value={ws}>
+                  {ws}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -273,6 +290,7 @@ export default function AppointmentsPage() {
       {viewType === "calendar" ? (
         <CalendarView
           appointments={filteredAppointments}
+          customWorkstations={activeWorkstations}
           onSelectSlot={(date, time, ws) => {
             setAppointmentDate(date);
             setAppointmentTime(time);
@@ -369,15 +387,17 @@ export default function AppointmentsPage() {
 
               {/* Koltuk / Personel Seçimi */}
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">Koltuk / Personel Seçin</label>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">İstasyon / Personel Seçin</label>
                 <select 
                   value={selectedWorkstation}
                   onChange={(e) => setSelectedWorkstation(e.target.value)}
                   className="input-dark bg-white"
                 >
-                  <option value="1. Koltuk (Ahmet Usta)">1. Koltuk (Ahmet Usta)</option>
-                  <option value="2. Koltuk (Mehmet Kalfa)">2. Koltuk (Mehmet Kalfa)</option>
-                  <option value="VİP Bakım Odası">VİP Bakım Odası</option>
+                  {activeWorkstations.map((ws) => (
+                    <option key={ws} value={ws}>
+                      {ws}
+                    </option>
+                  ))}
                 </select>
               </div>
 

@@ -78,6 +78,8 @@ export interface VerticalDefinition {
   pricingBadge: string;
   /** Sektöre özel fiyatlandırma modeli açıklaması */
   pricingModelDescription: string;
+  /** Ayarlar sayfasında gösterilen özelleştirilmiş başlık (örn. Bürosu Ayarları, Klinik Ayarları) */
+  settingsTitle?: string;
 }
 
 // ─── Rezervasyon Formu Tipleri ────────────────────────────────────────────────

@@ -32,7 +32,6 @@ def send_appointment_reminder(appointment_id: str, customer_phone: str, customer
         db.add(log_entry)
         db.commit()
         return {"status": "success", "appointment_id": appointment_id, "log_id": log_entry.id}
-    catch_err: Exception = None
     except Exception as e:
         db.rollback()
         logger.error(f"[Celery Worker Error] Reminder failed: {str(e)}")
