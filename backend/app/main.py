@@ -41,44 +41,36 @@ origins = [
     "http://localhost",
     "http://localhost:3000",
     "http://localhost:8000",
-    "*"
+    "http://127.0.0.1",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register API Routers
-api_prefix = settings.API_V1_STR
+# Register API Routers under both /api/v1 and /api for backward & frontend compatibility
+routers = [
+    auth.router, appointments.router, storage.router, tenants.router,
+    users.router, roles.router, staff.router, invoices.router,
+    customers.router, services.router, blog.router, health.router,
+    waitlist.router, notifications.router, chat.router, payments.router,
+    resources.router, packages.router, commissions.router, dashboard.router
+]
 
-app.include_router(auth.router, prefix=api_prefix)
-app.include_router(appointments.router, prefix=api_prefix)
-app.include_router(storage.router, prefix=api_prefix)
-app.include_router(tenants.router, prefix=api_prefix)
-app.include_router(users.router, prefix=api_prefix)
-app.include_router(roles.router, prefix=api_prefix)
-app.include_router(staff.router, prefix=api_prefix)
-app.include_router(invoices.router, prefix=api_prefix)
-app.include_router(customers.router, prefix=api_prefix)
-app.include_router(services.router, prefix=api_prefix)
-app.include_router(blog.router, prefix=api_prefix)
-
-# Additional Module Routers
-app.include_router(health.router, prefix=api_prefix)
-app.include_router(waitlist.router, prefix=api_prefix)
-app.include_router(notifications.router, prefix=api_prefix)
-app.include_router(chat.router, prefix=api_prefix)
-app.include_router(payments.router, prefix=api_prefix)
-app.include_router(resources.router, prefix=api_prefix)
-app.include_router(packages.router, prefix=api_prefix)
-app.include_router(commissions.router, prefix=api_prefix)
-app.include_router(dashboard.router, prefix=api_prefix)
+for router in routers:
+    app.include_router(router, prefix="/api/v1")
+    app.include_router(router, prefix="/api")
 
 @app.get("/")
+@app.get("/api")
+@app.get("/api/v1")
 def root():
     return {
         "name": settings.PROJECT_NAME,
@@ -86,4 +78,3 @@ def root():
         "status": "healthy",
         "docs": f"{settings.API_V1_STR}/docs"
     }
-

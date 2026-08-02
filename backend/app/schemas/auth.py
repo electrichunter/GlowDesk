@@ -10,6 +10,12 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     user: dict
 
+class UserPayload(BaseModel):
+    user_id: str = "user-123"
+    email: Optional[str] = "admin@glowdesk.com"
+    tenant_id: Optional[str] = "tenant-1"
+    role: Optional[str] = "admin"
+
 class RegisterBusinessRequest(BaseModel):
     businessName: str
     ownerName: str

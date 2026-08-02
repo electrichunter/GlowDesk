@@ -39,6 +39,8 @@ services:
       dockerfile: Dockerfile
     container_name: glowdesk_backend
     restart: always
+    volumes:
+      - ./backend:/app
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
@@ -53,6 +55,8 @@ services:
       - JWT_SECRET=super-secret-key-change-in-production-glowdesk
     expose:
       - "8000"
+    ports:
+      - "8000:8000"
     depends_on:
       mysql:
         condition: service_healthy
@@ -183,7 +187,42 @@ services:
     ports:
       - "8888:8080"
 
+  # 10. Remote Web Docker Management & Terminal (Portainer)
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: glowdesk_portainer
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    ports:
+      - "9002:9000"
+      - "9443:9443"
+
+  # 11. WireGuard Web VPN (WG-Easy)
+  vpn:
+    image: ghcr.io/wg-easy/wg-easy:latest
+    container_name: glowdesk_vpn
+    restart: always
+    environment:
+      - WG_HOST=${VPS_IP:-localhost}
+      - PASSWORD_HASH=$$2a$$12$$glowdesk_vpn_secret
+      - PORT=51821
+      - WG_PORT=51820
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    volumes:
+      - etc_wireguard:/etc/wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+
 volumes:
   mysql_data:
   redis_data:
   minio_data:
+  portainer_data:
+  etc_wireguard:

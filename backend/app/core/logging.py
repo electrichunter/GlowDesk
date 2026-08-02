@@ -1,4 +1,5 @@
 import logging
+import logging.config
 import sys
 from app.core.config import settings
 
@@ -29,7 +30,6 @@ def setup_logging():
         }
     }
 
-    import logging.config
     logging.config.dictConfig(logging_config)
     logger = logging.getLogger("glowdesk")
     logger.info(f"Logging initialized. Environment: {settings.APP_ENV}, Level: {log_level}")
