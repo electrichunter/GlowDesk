@@ -208,7 +208,7 @@ services:
     restart: always
     environment:
       - WG_HOST=${VPS_IP:-51.195.110.85}
-      - PASSWORD_HASH=$$2b$$12$$R.Sg0o58B5gJv3bJz.y3ce/QGZJkYvVqL.yQ93jB5y1.83Y6f8q2S
+      - PASSWORD_HASH=$$2a$$12$$Px7Dn6hu5qsIB2TsTa3ZoukTe6.cSnq7t0SfDqRjvedqVd8tVxhc6
       - PORT=51821
       - WG_PORT=51820
     ports:
