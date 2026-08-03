@@ -218,66 +218,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── SAĞ ALTTAKİ CANLI DESTEK / BİLGİ WIDGET'I (NetVerim Birebir Görseldeki Chat Widget) ── */}
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-          
-          {chatWidgetOpen && (
-            <div className="bg-white rounded-2xl p-4 shadow-layered border border-slate-200/90 max-w-xs space-y-3 animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">👋</span>
-                  <span className="text-xs font-bold text-slate-800">
-                    Merhaba! Size Nasıl Yardımcı olabilirim?
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setChatWidgetOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 text-xs font-bold"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Yönlendirme Butonları */}
-              <div className="space-y-1.5 pt-1">
-                <Link
-                  href="/#pricing"
-                  className="block text-center text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-blue-50 hover:text-[#0066FF] py-2 px-3 rounded-xl border border-slate-200/80 transition-colors"
-                >
-                  Satış öncesi sorum var
-                </Link>
-                <Link
-                  href="/login"
-                  className="block text-center text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-blue-50 hover:text-[#0066FF] py-2 px-3 rounded-xl border border-slate-200/80 transition-colors"
-                >
-                  Mevcut Ürünüm ile ilgili sorum var
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setCallModalOpen(true)}
-                  className="w-full text-center text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 py-2 px-3 rounded-xl border border-slate-300 transition-colors"
-                >
-                  ACİL DESTEK
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Chat Balonu Butonu */}
-          <button
-            type="button"
-            onClick={() => setChatWidgetOpen(!chatWidgetOpen)}
-            className="w-13 h-13 rounded-full bg-slate-950 text-white flex items-center justify-center shadow-xl hover:scale-105 transition-transform relative group cursor-pointer"
-          >
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center border-2 border-white">
-              1
-            </span>
-          </button>
-        </div>
       </section>
 
       {/* ──────────────────────────────────────────────────────────────────────────

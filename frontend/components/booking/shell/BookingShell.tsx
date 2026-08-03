@@ -76,15 +76,16 @@ export default function BookingShell({ tenantId, onSuccess }: BookingShellProps)
         {renderStepComponent()}
       </div>
 
-      {/* Alt Butonlar */}
-      <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+      {/* Alt Butonlar (Mobil Uyumlu Min 44px Dokunma Alanları) */}
+      <div className="p-4 sm:px-6 sm:py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
         <button
+          type="button"
           onClick={prevStep}
           disabled={isFirstStep || isSubmitting}
-          className={`px-5 py-2.5 text-xs font-bold rounded-xl transition-all ${
+          className={`px-5 py-3 text-xs font-bold rounded-2xl transition-all min-touch ${
             isFirstStep
               ? 'opacity-0 pointer-events-none'
-              : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-100'
+              : 'text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 active:scale-95'
           }`}
         >
           ← Geri
@@ -92,9 +93,10 @@ export default function BookingShell({ tenantId, onSuccess }: BookingShellProps)
 
         {isLastStep ? (
           <button
+            type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-6 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
+            className="flex-1 sm:flex-initial px-6 py-3 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 min-touch active:scale-95"
           >
             {isSubmitting ? (
               <>
@@ -107,11 +109,12 @@ export default function BookingShell({ tenantId, onSuccess }: BookingShellProps)
           </button>
         ) : (
           <button
+            type="button"
             onClick={nextStep}
             disabled={!canNext}
-            className={`px-6 py-2.5 text-xs font-bold rounded-xl transition-all ${
+            className={`flex-1 sm:flex-initial px-6 py-3 text-xs font-bold rounded-2xl transition-all min-touch flex items-center justify-center ${
               canNext
-                ? 'bg-[#1E1B4B] text-cyan-400 hover:bg-[#2A2663] shadow-md'
+                ? 'bg-[#0066FF] text-white hover:bg-blue-700 shadow-md active:scale-95'
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >

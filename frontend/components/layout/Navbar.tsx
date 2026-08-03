@@ -343,41 +343,131 @@ export default function Navbar() {
               </Link>
             )}
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile Menu Toggle (Min 44x44 Touch Target) */}
             <button
               type="button"
               onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100"
+              aria-label="Mobil Menüyü Aç/Kapat"
+              className="lg:hidden w-11 h-11 rounded-2xl text-slate-800 bg-slate-100/80 hover:bg-slate-200/80 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
             >
               {menuOpen ? <IconX /> : <IconMenu />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu with Slide Animation */}
+        {/* ── 3. LÜKS MOBİL MENÜ (Navbar Altında Kesintisiz Hizalanan Çekmece) ── */}
         {menuOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 px-6 py-4 space-y-3 animate-in fade-in slide-in-from-top-3 duration-200">
-            <Link
-              href="/#features"
-              onClick={(e) => handleNavAnchor(e, "features")}
-              className="block text-sm font-semibold text-slate-700 py-1 hover:text-[#0066FF]"
-            >
-              Özellikler
-            </Link>
-            <Link
-              href="/#pricing"
-              onClick={(e) => handleNavAnchor(e, "pricing")}
-              className="block text-sm font-semibold text-slate-700 py-1 hover:text-[#0066FF]"
-            >
-              Fiyatlar
-            </Link>
-            <Link
-              href="/blog"
-              onClick={() => setMenuOpen(false)}
-              className="block text-sm font-semibold text-slate-700 py-1 hover:text-[#0066FF]"
-            >
-              Blog
-            </Link>
+          <div className="lg:hidden bg-white/98 backdrop-blur-2xl border-t border-slate-200/80 px-6 py-6 space-y-6 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+            {/* Sektör Hızlı Seçimleri */}
+            <div>
+              <div className="text-[11px] font-extrabold tracking-wider uppercase text-slate-400 mb-2.5">
+                Sektör Çözümleri
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/sektorler/guzellik"
+                  onClick={() => setMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs font-bold text-slate-800 flex items-center gap-2 active:bg-blue-100"
+                >
+                  <span>💄</span> <span>Güzellik Salonu</span>
+                </Link>
+                <Link
+                  href="/sektorler/berber"
+                  onClick={() => setMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs font-bold text-slate-800 flex items-center gap-2 active:bg-blue-100"
+                >
+                  <span>💈</span> <span>Berber &amp; Kuaför</span>
+                </Link>
+                <Link
+                  href="/sektorler/masaj"
+                  onClick={() => setMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs font-bold text-slate-800 flex items-center gap-2 active:bg-blue-100"
+                >
+                  <span>💆</span> <span>Masaj &amp; Spa</span>
+                </Link>
+                <Link
+                  href="/sektorler/klinik"
+                  onClick={() => setMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs font-bold text-slate-800 flex items-center gap-2 active:bg-blue-100"
+                >
+                  <span>🩺</span> <span>Klinik &amp; Estetik</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Ana Navigasyon Bağlantıları */}
+            <div className="space-y-1 border-t border-slate-100 pt-4">
+              <div className="text-[11px] font-extrabold tracking-wider uppercase text-slate-400 mb-2">
+                Menü
+              </div>
+              <Link
+                href="/#features"
+                onClick={(e) => handleNavAnchor(e, "features")}
+                className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-100/80 text-sm font-bold text-slate-800 active:scale-[0.99] transition-all"
+              >
+                <span>⚡ Özellikler &amp; No-Show Motoru</span>
+                <span className="text-slate-400">→</span>
+              </Link>
+              <Link
+                href="/#pricing"
+                onClick={(e) => handleNavAnchor(e, "pricing")}
+                className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-100/80 text-sm font-bold text-slate-800 active:scale-[0.99] transition-all"
+              >
+                <span>💳 Paketler &amp; Fiyatlandırma</span>
+                <span className="text-slate-400">→</span>
+              </Link>
+              <Link
+                href="/blog"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-100/80 text-sm font-bold text-slate-800 active:scale-[0.99] transition-all"
+              >
+                <span>📝 Blog &amp; Rehberler</span>
+                <span className="text-slate-400">→</span>
+              </Link>
+            </div>
+
+            {/* Mobil Eylem Butonları */}
+            <div className="pt-2 border-t border-slate-100 space-y-3">
+              {session ? (
+                <div className="space-y-2">
+                  {(session.role === "owner" || session.role === "staff") && (
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full py-3.5 px-4 bg-[#0066FF] text-white font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                    >
+                      <span>📊</span> <span>Salon Yönetim Paneli</span>
+                    </Link>
+                  )}
+                  {session.role === "customer" && (
+                    <Link
+                      href="/my-appointments"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full py-3.5 px-4 bg-[#0066FF] text-white font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                    >
+                      <span>📋</span> <span>Randevularım</span>
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full py-3 px-4 bg-rose-50 text-rose-600 font-bold text-xs rounded-xl flex items-center justify-center gap-2 active:bg-rose-100 transition-colors cursor-pointer"
+                  >
+                    <span>🚪</span> <span>Oturumu Kapat</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  <Link
+                    href="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="w-full py-3.5 px-4 bg-[#0066FF] text-white font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                  >
+                    <span>✨</span> <span>Ücretsiz Başla / Giriş Yap</span>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </nav>

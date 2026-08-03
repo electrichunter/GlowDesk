@@ -30,6 +30,27 @@ body {
   color: var(--brand-dark);
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ── MOBİL DOKUNMA ALANLARI VE SAFEARA ── */
+.min-touch {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.pb-safe {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .font-display {
