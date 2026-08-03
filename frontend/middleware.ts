@@ -9,7 +9,7 @@ const ROUTE_RULES: Array<{
 }> = [
   { pattern: /^\/admin(\/|$)/,        allowed: ["admin"],                    redirect: "/dashboard" },
   { pattern: /^\/settings(\/|$)/,     allowed: ["owner", "admin"],           redirect: "/dashboard" },
-  { pattern: /^\/(dashboard|appointments|waitlist|customers|services)(\/|$)/, allowed: ["staff", "owner", "admin"], redirect: "/explore" },
+  { pattern: /^\/(dashboard|appointments|waitlist|customers|services)(\/|$)/, allowed: ["staff", "owner", "admin"], redirect: "/login" },
   { pattern: /^\/(my-appointments|profile)(\/|$)/, allowed: ["customer", "staff", "owner", "admin"], redirect: "/login" },
 ];
 
@@ -75,7 +75,7 @@ export default function middleware(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
       }
       if (!rule.allowed.includes(userRole)) {
-        const fallbackTarget = userRole === "customer" ? "/my-appointments" : "/explore";
+        const fallbackTarget = userRole === "customer" ? "/my-appointments" : "/dashboard";
         return NextResponse.redirect(new URL(fallbackTarget, request.url));
       }
     }

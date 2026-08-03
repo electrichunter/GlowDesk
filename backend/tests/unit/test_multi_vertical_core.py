@@ -2,8 +2,6 @@
 Unit tests for multi-vertical core engines:
   - ResourceOrchestrator (atomic locking & conflict detection)
   - CreditEngine (double-entry ledger & balance management)
-  - WaitlistEngine (auto queue transition)
-  - CancellationPolicyEngine (penalty & deposit capture)
 """
 import pytest
 from datetime import time, date, datetime
@@ -13,8 +11,6 @@ from app.models.package import Package, CustomerPackage
 from app.models.appointment import Appointment
 from app.services.resource_orchestrator import ResourceOrchestrator, ResourceConflictError
 from app.services.credit_engine import CreditEngine, InsufficientCreditError
-from app.services.waitlist_engine import WaitlistEngine
-from app.services.cancellation_policy_engine import CancellationPolicyEngine
 
 
 def test_resource_orchestrator_locking_and_conflict(db_session):
@@ -84,61 +80,4 @@ def test_credit_engine_ledger_flow(db_session):
     with pytest.raises(InsufficientCreditError):
         engine.consume_credit("cp-1", units=15)
 
-
-def test_cancellation_policy_engine(db_session):
-    tenant = Tenant(id="tenant-3", name="Oto Servis", slug="oto-servis", sector="auto")
-    db_session.add(tenant)
-
-    app = Appointment(
-        id="app-cancel-1", tenant_id="tenant-3", customer_name="Mehmet", customer_phone="05443332211",
-        appointment_date=date.today(), start_time=time(14, 0), end_time=time(15, 0),
-        status="scheduled", deposit_amount=100.0, deposit_status="held"
-    )
-    db_session.add(app)
-    db_session.commit()
-
-    cancellation_engine = CancellationPolicyEngine(db_session)
-    result = cancellation_engine.process_cancellation(appointment_id="app-cancel-1", reason="Müşteri iptali")
-
-    assert result["status"] == "cancelled"
-    assert result["is_late_cancellation"] == True
-    assert app.status == "cancelled"
-    assert app.deposit_status == "captured"
-
-
-def test_recall_engine_sectors(db_session):
-    from app.services.recall_engine import RecallEngine
-    engine = RecallEngine(db_session)
-
-    coaching_recalls = engine.get_pending_recalls_for_tenant("tenant-coaching", "coaching")
-    assert len(coaching_recalls) > 0
-    assert "Danışan" in coaching_recalls[0]["customer_name"]
-
-    legal_recalls = engine.get_pending_recalls_for_tenant("tenant-legal", "legal")
-    assert len(legal_recalls) > 0
-    assert "Müvekkil" in legal_recalls[0]["customer_name"]
-
-
-def test_waitlist_engine_queue(db_session):
-    from app.models.waitlist_entry import WaitlistEntry
-    from app.services.waitlist_engine import WaitlistEngine
-
-    tenant = Tenant(id="tenant-wait", name="Fitness Hall", slug="fitness-hall", sector="fitness")
-    db_session.add(tenant)
-
-    entry = WaitlistEntry(
-        id="w-1", tenant_id="tenant-wait", customer_id="cust-wait", priority_order=1, status="waiting"
-    )
-    db_session.add(entry)
-    db_session.commit()
-
-    engine = WaitlistEngine(db_session)
-    notified_entry = engine.process_cancelled_slot(tenant_id="tenant-wait", notification_window_minutes=15)
-
-    assert notified_entry is not None
-    assert notified_entry.status == "notified"
-    assert notified_entry.expires_at is not None
-
-    confirmed = engine.confirm_waitlist_slot(entry_id="w-1")
-    assert confirmed.status == "confirmed"
 

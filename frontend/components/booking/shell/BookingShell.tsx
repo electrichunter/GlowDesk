@@ -7,14 +7,8 @@ import StepIndicator from './StepIndicator';
 // Step bileşenleri
 import CustomerInfoStep from '../steps/shared/CustomerInfoStep';
 import DateTimeStep from '../steps/shared/DateTimeStep';
+import DepositStep from '../steps/shared/DepositStep';
 import ConfirmationStep from '../steps/shared/ConfirmationStep';
-import ServiceStaffStep from '../steps/salon/ServiceStaffStep';
-import CaseTypeStep from '../steps/hukuk/CaseTypeStep';
-import DocumentUploadStep from '../steps/hukuk/DocumentUploadStep';
-import HukukDepositStep from '../steps/hukuk/DepositStep';
-import GuestCountStep from '../steps/restoran/GuestCountStep';
-import TableSelectStep from '../steps/restoran/TableSelectStep';
-import RestoranDepositStep from '../steps/restoran/DepositStep';
 
 interface BookingShellProps {
   tenantId: string;
@@ -29,34 +23,16 @@ export default function BookingShell({ tenantId, onSuccess }: BookingShellProps)
   // Mevcut adımı bileşen ile eşleştir
   const renderStepComponent = () => {
     switch (currentStep.id) {
-      // Shared
-      case 'customer':
-        return <CustomerInfoStep />;
       case 'datetime':
         return <DateTimeStep tenantId={tenantId} />;
+      case 'customer':
+        return <CustomerInfoStep />;
+      case 'deposit':
+        return <DepositStep />;
       case 'confirm':
         return <ConfirmationStep />;
-
-      // Salon
-      case 'service-staff':
-        return <ServiceStaffStep tenantId={tenantId} />;
-
-      // Hukuk
-      case 'case-type':
-        return <CaseTypeStep tenantId={tenantId} />;
-      case 'document':
-        return <DocumentUploadStep />;
-      case 'deposit':
-        return state.vertical === 'hukuk' ? <HukukDepositStep /> : <RestoranDepositStep />;
-
-      // Restoran
-      case 'guest-count':
-        return <GuestCountStep />;
-      case 'table':
-        return <TableSelectStep tenantId={tenantId} />;
-
       default:
-        return <div>Bileşen bulunamadı: {currentStep.id}</div>;
+        return <DateTimeStep tenantId={tenantId} />;
     }
   };
 

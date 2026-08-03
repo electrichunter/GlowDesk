@@ -261,13 +261,6 @@ export default function Navbar() {
             </Link>
 
             <Link
-              href="/explore"
-              className="hover:text-[#0066FF] transition-colors"
-            >
-              Salonları Keşfet
-            </Link>
-
-            <Link
               href="/blog"
               className="hover:text-[#0066FF] transition-colors"
             >
@@ -377,13 +370,6 @@ export default function Navbar() {
               className="block text-sm font-semibold text-slate-700 py-1 hover:text-[#0066FF]"
             >
               Fiyatlar
-            </Link>
-            <Link
-              href="/explore"
-              onClick={() => setMenuOpen(false)}
-              className="block text-sm font-semibold text-slate-700 py-1 hover:text-[#0066FF]"
-            >
-              Salonları Keşfet
             </Link>
             <Link
               href="/blog"

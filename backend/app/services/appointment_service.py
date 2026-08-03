@@ -2,7 +2,6 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.repositories.appointment_repository import AppointmentRepository
 from app.services.resource_orchestrator import ResourceOrchestrator
-from app.services.cancellation_policy_engine import CancellationPolicyEngine
 from app.worker.tasks import send_appointment_reminder
 from app.core.exceptions import NotFoundError
 
@@ -11,7 +10,6 @@ class AppointmentService:
         self.db = db
         self.repo = AppointmentRepository(db)
         self.orchestrator = ResourceOrchestrator(db)
-        self.cancellation_engine = CancellationPolicyEngine(db)
 
     def create_appointment(self, payload) -> dict:
         resource_ids = getattr(payload, "resource_ids", []) or []
@@ -73,9 +71,6 @@ class AppointmentService:
         return self.repo.get_all()
 
     def update_status(self, appointment_id: str, status: str):
-        if status == "cancelled":
-            return self.cancellation_engine.process_cancellation(appointment_id)
-
         appointment = self.repo.update_status(appointment_id, status)
         if not appointment:
             raise NotFoundError("Randevu")

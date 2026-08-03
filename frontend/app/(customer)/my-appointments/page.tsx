@@ -83,12 +83,6 @@ export default function CustomerDashboardPage() {
             </p>
           </div>
 
-          <Link
-            href="/explore"
-            className="btn-cyan text-xs py-2.5 px-4 font-extrabold shadow-sm flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <span>🔍</span> Yeni Randevu Al (Salonları Keşfet)
-          </Link>
         </div>
 
         {/* İstatistik Özet Kartları */}
@@ -175,12 +169,6 @@ export default function CustomerDashboardPage() {
                       Randevuyu İptal Et ❌
                     </button>
                   )}
-                  <Link
-                    href="/explore"
-                    className="px-3 py-1.5 rounded-lg bg-cyan-50 text-cyan-900 font-bold text-xs border border-cyan-200 hover:bg-cyan-100 transition-all"
-                  >
-                    Tekrar Randevu Al 🔄
-                  </Link>
                 </div>
               </div>
             ))
@@ -189,14 +177,8 @@ export default function CustomerDashboardPage() {
               <span className="text-4xl block">📅</span>
               <h4 className="font-extrabold text-[#1E1B4B] text-base">Henüz Randevunuz Bulunmuyor</h4>
               <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-                Aradığınız kategorideki güzellik salonlarını, berberleri ve klinik seanslarını inceleyip 10 saniyede randevu oluşturabilirsiniz.
+                İşletmenizden aldığınız doğrudan rezervasyon bağlantısını kullanarak randevu oluşturabilirsiniz.
               </p>
-              <Link
-                href="/explore"
-                className="btn-cyan text-xs py-2.5 px-5 font-extrabold inline-block shadow-sm mt-2"
-              >
-                Salonları Keşfet & Randevu Al 🚀
-              </Link>
             </div>
           )}
         </div>

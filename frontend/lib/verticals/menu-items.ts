@@ -146,6 +146,5 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
 /** Müşteri menüsü (sektörden bağımsız) */
 export const CUSTOMER_MENU_ITEMS: MenuItem[] = [
   { href: '/my-appointments', label: '📋 Randevularım',    iconKey: 'IconCalendar', minRole: 'customer' },
-  { href: '/explore',         label: '🔍 Salonları Keşfet', iconKey: 'IconHome',     minRole: 'customer' },
   { href: '/profile',         label: '⚙️ Profil Ayarlarım', iconKey: 'IconSettings', minRole: 'customer' },
 ];

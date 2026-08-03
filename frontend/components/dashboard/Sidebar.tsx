@@ -80,7 +80,6 @@ const ADMIN_MENU_ITEMS: MenuItem[] = [
 
 const CUSTOMER_MENU_ITEMS: MenuItem[] = [
   { href: "/my-appointments", label: "📋 Randevularım", icon: <IconCalendar />, minRole: "customer" },
-  { href: "/explore", label: "🔍 Salonları Keşfet", icon: <IconHome />, minRole: "customer" },
   { href: "/profile", label: "⚙️ Profil Ayarlarım", icon: <IconSettings />, minRole: "customer" },
 ];
 

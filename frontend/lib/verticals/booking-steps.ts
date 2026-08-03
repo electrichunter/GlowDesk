@@ -12,11 +12,6 @@ import type { BookingStep, VerticalKey } from './types';
  */
 const standardSteps: BookingStep[] = [
   {
-    id: 'service',
-    label: 'Hizmet & Detay',
-    isComplete: (state) => Boolean((state.metadata as { serviceId?: string }).serviceId || true),
-  },
-  {
     id: 'datetime',
     label: 'Tarih & Saat',
     isComplete: (state) => Boolean(state.dateTime.date && state.dateTime.startTime),
@@ -27,6 +22,11 @@ const standardSteps: BookingStep[] = [
     isComplete: (state) => Boolean(state.customerInfo.fullName && state.customerInfo.phone),
   },
   {
+    id: 'deposit',
+    label: 'Ön Ödeme',
+    isComplete: (state) => Boolean((state.metadata as { depositPaid?: boolean }).depositPaid),
+  },
+  {
     id: 'confirm',
     label: 'Onay',
     isComplete: () => false,
@@ -34,6 +34,7 @@ const standardSteps: BookingStep[] = [
 ];
 
 export const VERTICAL_BOOKING_STEPS: Record<VerticalKey, BookingStep[]> = {
+<<<<<<< Updated upstream
   salon: [
     {
       id: 'service-staff',
@@ -57,86 +58,21 @@ export const VERTICAL_BOOKING_STEPS: Record<VerticalKey, BookingStep[]> = {
     },
   ],
 
+=======
+  salon: standardSteps,
+  barber: standardSteps,
+>>>>>>> Stashed changes
   clinic: standardSteps,
   auto: standardSteps,
   fitness: standardSteps,
   vet: standardSteps,
   coaching: standardSteps,
-
-  legal: [
-    {
-      id: 'case-type',
-      label: 'Dava Türü',
-      isComplete: (state) => Boolean((state.metadata as { caseTypeId?: string }).caseTypeId || true),
-    },
-    {
-      id: 'datetime',
-      label: 'Randevu',
-      isComplete: (state) => Boolean(state.dateTime.date && state.dateTime.startTime),
-    },
-    {
-      id: 'customer',
-      label: 'Bilgiler',
-      isComplete: (state) => Boolean(state.customerInfo.fullName && state.customerInfo.phone),
-    },
-    {
-      id: 'confirm',
-      label: 'Onay',
-      isComplete: () => false,
-    },
-  ],
-  hukuk: [
-    {
-      id: 'case-type',
-      label: 'Dava Türü',
-      isComplete: (state) => Boolean((state.metadata as { caseTypeId?: string }).caseTypeId || true),
-    },
-    {
-      id: 'datetime',
-      label: 'Randevu',
-      isComplete: (state) => Boolean(state.dateTime.date && state.dateTime.startTime),
-    },
-    {
-      id: 'customer',
-      label: 'Bilgiler',
-      isComplete: (state) => Boolean(state.customerInfo.fullName && state.customerInfo.phone),
-    },
-    {
-      id: 'confirm',
-      label: 'Onay',
-      isComplete: () => false,
-    },
-  ],
-
+  legal: standardSteps,
+  hukuk: standardSteps,
   photo: standardSteps,
   spa: standardSteps,
   coworking: standardSteps,
   driving: standardSteps,
-
-  restoran: [
-    {
-      id: 'guest-count',
-      label: 'Kişi Sayısı',
-      isComplete: (state) => {
-        const meta = state.metadata as { guestCount?: number };
-        return typeof meta.guestCount === 'number' && meta.guestCount > 0;
-      },
-    },
-    {
-      id: 'datetime',
-      label: 'Tarih & Saat',
-      isComplete: (state) => Boolean(state.dateTime.date && state.dateTime.startTime),
-    },
-    {
-      id: 'customer',
-      label: 'Bilgiler',
-      isComplete: (state) => Boolean(state.customerInfo.fullName && state.customerInfo.phone),
-    },
-    {
-      id: 'confirm',
-      label: 'Onay',
-      isComplete: () => false,
-    },
-  ],
+  restoran: standardSteps,
 };
 

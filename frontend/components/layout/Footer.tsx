@@ -33,7 +33,6 @@ export default function Footer() {
                 { href: "/#features", label: "No-Show İptal Engelleyici" },
                 { href: "/#features", label: "Otomatik Bekleme Listesi" },
                 { href: "/#pricing", label: "Komisyonsuz Fiyatlandırma" },
-                { href: "/explore", label: "Salonları Haritada Gör" },
                 { href: "/register", label: "1 Ay Ücretsiz Başla" },
               ].map((item) => (
                 <li key={item.label}>
