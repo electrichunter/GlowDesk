@@ -12,8 +12,8 @@ const DEFAULT_SERVICES: ServiceItem[] = [
   { id: "srv-1", name: "Saç Kesim & Şampuan Yıkama", price: 350 },
   { id: "srv-2", name: "Sakal Tıraşı & Sıcak Havlu", price: 150 },
   { id: "srv-3", name: "Cilt Bakımı & Siyah Nokta Maskesi", price: 250 },
-  { id: "srv-4", name: "Keratin Saç Bakımı", price: 500 },
-  { id: "srv-5", name: "VIP Komple Bakım Paketi", price: 750 },
+  { id: "srv-4", name: "Danışmanlık & Seans Hizmeti", price: 500 },
+  { id: "srv-5", name: "VIP Komple Hizmet Paketi", price: 750 },
 ];
 
 interface BulkInvoiceModalProps {
@@ -25,7 +25,7 @@ interface BulkInvoiceModalProps {
 export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvoiceModalProps) {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [staffName, setStaffName] = useState("Ahmet Usta (Kıdemli Kuaför)");
+  const [staffName, setStaffName] = useState("Sorumlu Personel");
   const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([
     DEFAULT_SERVICES[0],
     DEFAULT_SERVICES[1],
@@ -33,6 +33,13 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Nakit");
   const [generatedInvoice, setGeneratedInvoice] = useState<any | null>(null);
+  
+  // GİB e-Fatura Integrator State
+  const [showEFaturaModal, setShowEFaturaModal] = useState(false);
+  const [integrator, setIntegrator] = useState("uyumsoft");
+  const [taxNumber, setTaxNumber] = useState("11111111111");
+  const [eFaturaResult, setEFaturaResult] = useState<any | null>(null);
+  const [sendingEFatura, setSendingEFatura] = useState(false);
 
   const toggleService = (srv: ServiceItem) => {
     if (selectedServices.some((s) => s.id === srv.id)) {
@@ -60,7 +67,7 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
     }
 
     const invData = {
-      invoiceNumber: `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      invoiceNumber: `ADS-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       customerName,
       customerPhone,
       staffName,
@@ -96,21 +103,85 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
     setGeneratedInvoice(invData);
   };
 
+  const handleSendGibEFatura = async () => {
+    if (!generatedInvoice) return;
+    setSendingEFatura(true);
+    setEFaturaResult(null);
+
+    try {
+      const { apiRequest } = await import("@/lib/api-client");
+      const { data } = await apiRequest<any>("/invoices/gib-efatura", {
+        method: "POST",
+        body: JSON.stringify({
+          tenantId,
+          integrator,
+          taxNumber,
+          customerName: generatedInvoice.customerName,
+          items: generatedInvoice.items,
+          grandTotal: generatedInvoice.grandTotal,
+          paymentMethod: generatedInvoice.paymentMethod,
+        }),
+      });
+
+      if (data) {
+        setEFaturaResult(data);
+      }
+    } catch (err) {
+      console.error("e-Fatura error:", err);
+      alert("e-Fatura entegratör bağlantı hatası.");
+    } finally {
+      setSendingEFatura(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static">
+      
+      {/* Thermal POS Print Styles */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #adisyon-print-area, #adisyon-print-area * {
+            visibility: visible;
+          }
+          #adisyon-print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 80mm;
+            padding: 4mm;
+            margin: 0;
+            font-size: 11px;
+            color: black;
+            background: white;
+            box-shadow: none;
+            border: none;
+          }
+          .no-print {
+            display: none !important;
+          }
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
+        }
+      `}</style>
+
+      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-8 no-print">
         
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-emerald-950 p-6 text-white flex items-center justify-between">
+        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 text-white flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-2xl">🧾</span>
-              <h2 className="text-xl font-black font-display tracking-tight">Toplu Hizmet Faturası & Adisyon Kes</h2>
+              <h2 className="text-xl font-black font-display tracking-tight">Adisyon & Hizmet Özeti Fişi</h2>
             </div>
-            <p className="text-xs text-emerald-200 mt-1">
-              Birden fazla hizmet seçerek tek seferde resmi fatura veya adisyon fişi oluşturun.
+            <p className="text-xs text-indigo-200 mt-1">
+              Tamamlanan hizmetler için 1 sayfalık hızlı adisyon fişi çıkarın veya GİB e-Fatura entegratörüne iletin.
             </p>
           </div>
           <button
@@ -136,7 +207,7 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
                     placeholder="ör. Ömer Faruk Uysal"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-emerald-600 outline-none"
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-indigo-600 outline-none"
                   />
                 </div>
 
@@ -146,7 +217,7 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
                     type="text"
                     value={staffName}
                     onChange={(e) => setStaffName(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-emerald-600 outline-none"
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-indigo-600 outline-none"
                   />
                 </div>
               </div>
@@ -165,7 +236,7 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
                         onClick={() => toggleService(srv)}
                         className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
                           isSelected
-                            ? "bg-emerald-50/80 border-emerald-600 ring-2 ring-emerald-500/20 text-emerald-950 font-bold"
+                            ? "bg-indigo-50/80 border-indigo-600 ring-2 ring-indigo-500/20 text-indigo-950 font-bold"
                             : "bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-700"
                         }`}
                       >
@@ -174,11 +245,11 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => {}}
-                            className="w-4 h-4 text-emerald-600 rounded"
+                            className="w-4 h-4 text-indigo-600 rounded"
                           />
                           <span className="text-xs font-bold">{srv.name}</span>
                         </div>
-                        <span className="text-xs font-black text-emerald-700">₺{srv.price}</span>
+                        <span className="text-xs font-black text-indigo-700">₺{srv.price}</span>
                       </div>
                     );
                   })}
@@ -192,7 +263,7 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-emerald-600"
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-indigo-600"
                   >
                     <option value="Nakit">💵 Nakit</option>
                     <option value="Kredi Kartı">💳 Kredi Kartı (POS)</option>
@@ -207,13 +278,13 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
                     min="0"
                     value={discount}
                     onChange={(e) => setDiscount(Number(e.target.value))}
-                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-emerald-600 outline-none"
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-indigo-600 outline-none"
                   />
                 </div>
               </div>
 
-              {/* Hesaplanan Fatura Özeti */}
-              <div className="bg-emerald-950 text-white p-4 rounded-2xl space-y-1.5 text-xs">
+              {/* Adisyon Özeti */}
+              <div className="bg-slate-900 text-white p-4 rounded-2xl space-y-1.5 text-xs">
                 <div className="flex justify-between text-slate-300">
                   <span>Hizmet Ara Toplamı:</span>
                   <span>₺{subtotal}</span>
@@ -225,10 +296,10 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
                   </div>
                 )}
                 <div className="flex justify-between text-slate-300">
-                  <span>KDV (%20):</span>
-                  <span>₺{taxAmount.toFixed(2)}</span>
+                  <span>KDV Dahil / Matrah:</span>
+                  <span>₺{discountedSubtotal.toFixed(2)}</span>
                 </div>
-                <div className="border-t border-white/10 pt-2 flex justify-between text-sm font-black text-emerald-400">
+                <div className="border-t border-white/10 pt-2 flex justify-between text-sm font-black text-cyan-400">
                   <span>GENEL TOPLAM:</span>
                   <span>₺{grandTotal.toFixed(2)}</span>
                 </div>
@@ -236,77 +307,150 @@ export default function BulkInvoiceModal({ isOpen, onClose, tenantId }: BulkInvo
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs transition-all shadow-md"
+                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-xs transition-all shadow-md"
               >
-                🧾 Toplu Fatura / Fişi Oluştur
+                🧾 Adisyon Fişi Oluştur
               </button>
 
             </form>
           ) : (
-            /* OLUŞTURULAN RESMİ FATURA TASLAĞI VE YAZDIRMA */
+            /* OLUŞTURULAN TEK SAYFALIK ADİSYON FİŞİ */
             <div className="space-y-4">
-              <div className="p-6 bg-slate-50 border border-slate-300 rounded-2xl font-mono text-xs text-slate-800 space-y-4">
-                <div className="flex justify-between items-start border-b border-slate-300 pb-3">
-                  <div>
-                    <h3 className="font-black text-sm text-slate-900">GlowDesk Resmi Fatura</h3>
-                    <p className="text-[10px] text-slate-500">Fatura No: {generatedInvoice.invoiceNumber}</p>
-                    <p className="text-[10px] text-slate-500">Tarih: {generatedInvoice.issuedAt}</p>
-                  </div>
-                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-extrabold text-[10px]">
-                    ÖDENDİ ({generatedInvoice.paymentMethod})
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div>
-                    <p className="font-bold text-slate-500">MÜŞTERİ:</p>
-                    <p className="font-extrabold">{generatedInvoice.customerName}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-500">HİZMET VEREN:</p>
-                    <p className="font-extrabold">{generatedInvoice.staffName}</p>
+              
+              {/* POS Fişi Kartı */}
+              <div id="adisyon-print-area" className="p-6 bg-slate-50 border border-slate-300 rounded-2xl font-mono text-xs text-slate-900 space-y-3 shadow-inner">
+                <div className="text-center border-b border-slate-300 pb-3 space-y-1">
+                  <h3 className="font-black text-base text-slate-900 tracking-wider">GLOWDESK ADİSYON FİŞİ</h3>
+                  <p className="text-[10px] text-slate-600 font-bold">HİZMET ÖZETİ BİLGİ FİŞİ</p>
+                  <div className="flex justify-between text-[10px] text-slate-500 pt-1">
+                    <span>Fiş No: {generatedInvoice.invoiceNumber}</span>
+                    <span>{generatedInvoice.issuedAt}</span>
                   </div>
                 </div>
 
-                {/* Hizmet Kalemleri */}
-                <div>
-                  <p className="font-bold text-slate-500 mb-1">HİZMET KALEMLERİ:</p>
-                  <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-                    {generatedInvoice.items.map((it: any, idx: number) => (
-                      <div key={idx} className="flex justify-between p-2 text-xs border-b last:border-0 border-slate-100">
-                        <span>1x {it.serviceName}</span>
-                        <span className="font-bold">₺{it.price}</span>
-                      </div>
-                    ))}
+                <div className="text-[11px] space-y-0.5 border-b border-slate-200 pb-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">MÜŞTERİ:</span>
+                    <span className="font-extrabold">{generatedInvoice.customerName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">PERSONEL:</span>
+                    <span className="font-extrabold">{generatedInvoice.staffName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ÖDEME:</span>
+                    <span className="font-extrabold text-emerald-700">{generatedInvoice.paymentMethod}</span>
                   </div>
                 </div>
 
-                <div className="space-y-1 text-right text-xs pt-2">
-                  <p>Ara Toplam: ₺{generatedInvoice.subtotal}</p>
+                {/* Kalemler */}
+                <div className="space-y-1">
+                  <p className="font-extrabold text-[10px] uppercase text-slate-400">ALINAN HİZMETLER:</p>
+                  {generatedInvoice.items.map((it: any, idx: number) => (
+                    <div key={idx} className="flex justify-between text-xs py-0.5 border-b border-dashed border-slate-200">
+                      <span>1x {it.serviceName}</span>
+                      <span className="font-bold">₺{it.price}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Toplam */}
+                <div className="space-y-1 text-right text-xs pt-2 border-t border-slate-300">
+                  <p className="text-slate-600">Ara Toplam: ₺{generatedInvoice.subtotal}</p>
                   {generatedInvoice.discountAmount > 0 && (
-                    <p className="text-rose-600">İndirim: -₺{generatedInvoice.discountAmount}</p>
+                    <p className="text-rose-600 font-bold">İndirim: -₺{generatedInvoice.discountAmount}</p>
                   )}
-                  <p>KDV (%20): ₺{generatedInvoice.taxAmount.toFixed(2)}</p>
-                  <p className="text-sm font-black text-emerald-700 pt-1 border-t border-slate-300">
-                    TOPLAM TUTAR: ₺{generatedInvoice.grandTotal.toFixed(2)}
+                  <p className="text-sm font-black text-slate-900 pt-1 border-t border-slate-400">
+                    ÖDENEN TOPLAM: ₺{generatedInvoice.grandTotal.toFixed(2)}
                   </p>
+                </div>
+
+                <div className="text-center pt-2 text-[9px] text-slate-400">
+                  *** Teşekkür Eder Yine Bekleriz ***
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              {/* E-Fatura Integrator Section */}
+              {showEFaturaModal && (
+                <div className="p-4 bg-indigo-950 text-white rounded-2xl space-y-3 animate-fade-in no-print">
+                  <div className="flex justify-between items-center border-b border-indigo-800 pb-2">
+                    <h4 className="font-black text-xs text-cyan-300">⚡ GİB e-Fatura / e-Arşiv Entegratör Gönderimi</h4>
+                    <button onClick={() => setShowEFaturaModal(false)} className="text-xs text-slate-400 font-bold">✕</button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-300 uppercase mb-1">Entegratör Seçin</label>
+                      <select
+                        value={integrator}
+                        onChange={(e) => setIntegrator(e.target.value)}
+                        className="w-full p-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold"
+                      >
+                        <option value="uyumsoft">Uyumsoft e-Fatura API</option>
+                        <option value="qnb_efinans">QNB eFinans API</option>
+                        <option value="parasut">Paraşüt e-Fatura</option>
+                        <option value="izibiz">İzibiz Entegrasyon</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-300 uppercase mb-1">Firma / Müşteri VKN-TCKN</label>
+                      <input
+                        type="text"
+                        maxLength={11}
+                        value={taxNumber}
+                        onChange={(e) => setTaxNumber(e.target.value)}
+                        className="w-full p-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleSendGibEFatura}
+                    disabled={sendingEFatura}
+                    className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-extrabold rounded-xl text-xs shadow-md disabled:opacity-50"
+                  >
+                    {sendingEFatura ? "GİB Sistemine İletiliyor..." : "✓ GİB Sistemine Gönder (Onayla & PDF Al)"}
+                  </button>
+
+                  {eFaturaResult && (
+                    <div className="p-3 bg-emerald-900/60 border border-emerald-500/40 rounded-xl text-xs space-y-1 text-emerald-200 font-mono">
+                      <p className="font-extrabold text-white">✓ e-Fatura Başarıyla Oluşturuldu!</p>
+                      <p>ETTN: {eFaturaResult.ettn}</p>
+                      <p>GİB Fatura No: {eFaturaResult.gibInvoiceNumber}</p>
+                      <p className="text-[10px] text-cyan-300">Resmi GİB onaylı XML & PDF sisteme kaydedildi.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-2 no-print">
                 <button
                   onClick={() => window.print()}
                   className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
                 >
-                  <span>🖨️</span> <span>Faturayı Yazdır / PDF İndir</span>
+                  <span>🖨️</span> <span>Adisyon Fişini Yazdır (1 Sayfa Compact POS)</span>
                 </button>
+
                 <button
-                  onClick={() => setGeneratedInvoice(null)}
-                  className="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-all"
+                  onClick={() => setShowEFaturaModal(!showEFaturaModal)}
+                  className="py-3 px-4 bg-purple-900 hover:bg-purple-800 text-purple-200 font-extrabold rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5 border border-purple-700"
                 >
-                  Yeni Fatura Kes
+                  <span>⚡</span> <span>e-Fatura Gönder (GİB)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setGeneratedInvoice(null);
+                    setShowEFaturaModal(false);
+                  }}
+                  className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-all"
+                >
+                  Yeni Adisyon
                 </button>
               </div>
+
             </div>
           )}
 

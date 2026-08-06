@@ -34,7 +34,34 @@ const standardSteps: BookingStep[] = [
 ];
 
 export const VERTICAL_BOOKING_STEPS: Record<VerticalKey, BookingStep[]> = {
+<<<<<<< HEAD
   salon: standardSteps,
+=======
+  salon: [
+    {
+      id: 'service-staff',
+      label: 'Hizmet & Personel',
+      isComplete: (state) => Boolean((state.metadata as { serviceId?: string }).serviceId),
+    },
+    {
+      id: 'datetime',
+      label: 'Tarih & Saat',
+      isComplete: (state) => Boolean(state.dateTime.date && state.dateTime.startTime),
+    },
+    {
+      id: 'customer',
+      label: 'Bilgiler',
+      isComplete: (state) => Boolean(state.customerInfo.fullName && state.customerInfo.phone),
+    },
+    {
+      id: 'confirm',
+      label: 'Onay',
+      isComplete: () => false,
+    },
+  ],
+
+  barber: standardSteps,
+>>>>>>> ozellik-test
   clinic: standardSteps,
   auto: standardSteps,
   fitness: standardSteps,

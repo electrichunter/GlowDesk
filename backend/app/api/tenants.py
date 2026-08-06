@@ -83,6 +83,8 @@ def update_tenant(tenant_id: str, payload: dict, db: Session = Depends(get_db)):
         tenant.address = payload["address"]
     if "sector" in payload and payload["sector"]:
         tenant.sector = payload["sector"]
+    if "subscription_tier" in payload and payload["subscription_tier"]:
+        tenant.subscription_tier = payload["subscription_tier"]
 
     db.commit()
     db.refresh(tenant)

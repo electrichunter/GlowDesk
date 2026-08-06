@@ -26,6 +26,7 @@ interface RegisteredTenant {
   status: "active" | "suspended" | "onboarding";
   mrr_amount: number;
   free_until?: string; // e.g. "2028-01-01"
+  suspended_until?: string; // e.g. "2026-09-15" (Dondurma Bitiş Tarihi)
   created_at: string;
 }
 
@@ -37,6 +38,7 @@ interface RegisteredUser {
   role: UserRole;
   businessName?: string;
   status?: "active" | "banned";
+  banned_until?: string; // e.g. "2026-09-15" (Engelleme Bitiş Tarihi)
   createdAt: string;
 }
 
@@ -146,6 +148,10 @@ export default function AdminDashboardPage() {
   const [editUserRole, setEditUserRole] = useState<UserRole>("owner");
   const [editUserStatus, setEditUserStatus] = useState<"active" | "banned">("active");
   const [userSaveSuccess, setUserSaveSuccess] = useState(false);
+
+  // Profile Drawer / Modal States
+  const [profileTenant, setProfileTenant] = useState<RegisteredTenant | null>(null);
+  const [profileUser, setProfileUser] = useState<RegisteredUser | null>(null);
 
   const loadAdminData = useCallback(async () => {
     try {
@@ -364,6 +370,37 @@ export default function AdminDashboardPage() {
     localStorage.setItem("glowdesk_registered_tenants", JSON.stringify(updated));
   };
 
+  // Salon Sektörünü Değiştirme (Hukuk, Klinik, Oto, Fitness, Güzellik vb.)
+  const handleChangeTenantSector = async (tenantId: string, newSector: string) => {
+    const updated = tenants.map((t) => {
+      if (t.id === tenantId) {
+        logger.info(`İşletme sektörü güncellendi: ${t.name} -> ${newSector}`, "AdminTenantControl");
+        return { ...t, sector: newSector };
+      }
+      return t;
+    });
+    setTenants(updated);
+    localStorage.setItem("glowdesk_registered_tenants", JSON.stringify(updated));
+
+    try {
+      const { apiRequest } = await import("@/lib/api-client");
+      await apiRequest(`/tenants/${tenantId}`, {
+        method: "PUT",
+        body: JSON.stringify({ sector: newSector }),
+      });
+    } catch (e) {
+      console.warn("Update tenant sector API warning:", e);
+    }
+  };
+
+  // Hızlı Promosyon Süre Uzatma Presets (+1 Ay, +6 Ay, +1 Yıl)
+  const handleQuickPromoExtension = (tenantId: string, monthsToAdd: number) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + monthsToAdd);
+    const dateStr = d.toISOString().split("T")[0];
+    handleSetTenantFreeUntil(tenantId, dateStr);
+  };
+
   // Salon Abonelik Paketini Değiştirme (Starter, Pro, Enterprise)
   const handleChangeTenantTier = (tenantId: string, newTier: "starter" | "pro" | "enterprise") => {
     const updated = tenants.map((t) => {
@@ -556,6 +593,69 @@ export default function AdminDashboardPage() {
     } catch (err) {
       console.error("User save edit error:", err);
     }
+  };
+
+  // Kullanıcı Hesabı Süreli Dondurma / Engelleme (7 Gün, 30 Gün, 90 Gün veya Özel Tarih)
+  const handleSetUserBanUntil = async (userId: string, banDate?: string, daysPreset?: number) => {
+    const targetUser = users.find((u) => u.id === userId);
+    if (!targetUser) return;
+
+    let targetDateStr = banDate || "";
+    if (daysPreset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysPreset);
+      targetDateStr = d.toISOString().split("T")[0];
+    }
+
+    const nextStatus: RegisteredUser["status"] = targetDateStr || daysPreset ? "banned" : targetUser.status === "banned" ? "active" : "banned";
+    const finalBanDate = nextStatus === "banned" ? targetDateStr || undefined : undefined;
+
+    try {
+      const { apiRequest } = await import('@/lib/api-client');
+      await apiRequest(`/users/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: nextStatus, banned_until: finalBanDate }),
+      });
+
+      const updated = users.map((u) => (u.id === userId ? { ...u, status: nextStatus, banned_until: finalBanDate } : u));
+      setUsers(updated);
+      setUserSaveSuccess(true);
+      setTimeout(() => setUserSaveSuccess(false), 3000);
+      logger.info(`Kullanıcı süreli engellendi: ${targetUser.fullName} -> Bitiş: ${finalBanDate || "Süresiz/Aktif"}`, "AdminUserControl");
+    } catch (err) {
+      console.error("User ban date update error:", err);
+    }
+  };
+
+  // İşletme Hesabı Süreli Dondurma (7 Gün, 30 Gün, 90 Gün veya Özel Tarih)
+  const handleSetTenantSuspendedUntil = async (tenantId: string, suspendDate?: string, daysPreset?: number) => {
+    const targetTenant = tenants.find((t) => t.id === tenantId);
+    if (!targetTenant) return;
+
+    let targetDateStr = suspendDate || "";
+    if (daysPreset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysPreset);
+      targetDateStr = d.toISOString().split("T")[0];
+    }
+
+    const nextStatus: RegisteredTenant["status"] = targetDateStr || daysPreset ? "suspended" : targetTenant.status === "suspended" ? "active" : "suspended";
+    const finalSuspendDate = nextStatus === "suspended" ? targetDateStr || undefined : undefined;
+
+    const updated = tenants.map((t) => (t.id === tenantId ? { ...t, status: nextStatus, suspended_until: finalSuspendDate } : t));
+    setTenants(updated);
+    localStorage.setItem("glowdesk_registered_tenants", JSON.stringify(updated));
+
+    try {
+      const { apiRequest } = await import('@/lib/api-client');
+      await apiRequest(`/tenants/${tenantId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: nextStatus, suspended_until: finalSuspendDate }),
+      });
+    } catch (e) {
+      console.warn("Tenant freeze date API warning:", e);
+    }
+    logger.info(`İşletme dondurma tarihi ayarlandı: ${targetTenant.name} -> Bitiş: ${finalSuspendDate || "Süresiz/Aktif"}`, "AdminTenantControl");
   };
 
   const handleToggleUserBan = async (userId: string, userName: string) => {
@@ -900,7 +1000,27 @@ export default function AdminDashboardPage() {
                           {t.name}
                           <span className="block text-[10px] font-normal text-slate-400">/{t.slug}</span>
                         </td>
-                        <td className="p-4 font-bold text-cyan-700 uppercase">{t.sector}</td>
+                        <td className="p-4">
+                          <select
+                            value={t.sector}
+                            onChange={(e) => handleChangeTenantSector(t.id, e.target.value)}
+                            className="input-dark bg-white py-1 px-2 text-xs w-auto font-bold text-cyan-800"
+                          >
+                            <option value="legal">⚖️ Hukuk</option>
+                            <option value="clinic">🩺 Klinik</option>
+                            <option value="beauty">💄 Güzellik</option>
+                            <option value="barber">💈 Berber</option>
+                            <option value="spa">💆 Spa</option>
+                            <option value="auto">🚗 Oto Servis</option>
+                            <option value="fitness">💪 Fitness</option>
+                            <option value="vet">🐾 Veteriner</option>
+                            <option value="coaching">📚 Danışmanlık</option>
+                            <option value="photo">📸 Fotoğraf</option>
+                            <option value="coworking">🏢 Coworking</option>
+                            <option value="driving">🚘 Sürücü Kursu</option>
+                            <option value="restoran">🍽️ Restoran</option>
+                          </select>
+                        </td>
                         <td className="p-4">{t.city} / {t.district || "Şişli"}</td>
                         <td className="p-4">
                           <select
@@ -914,49 +1034,106 @@ export default function AdminDashboardPage() {
                           </select>
                           <span className="text-[10px] text-emerald-600 font-bold mt-1 block">₺{t.mrr_amount}/Ay MRR</span>
                         </td>
-                        <td className="p-4">
-                          <input
-                            type="date"
-                            min={new Date().toISOString().split("T")[0]}
-                            value={t.free_until || ""}
-                            onChange={(e) => handleSetTenantFreeUntil(t.id, e.target.value)}
-                            className="input-dark text-xs py-1 px-2 w-auto bg-white font-bold"
-                          />
+                        <td className="p-4 space-y-1">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="date"
+                              min={new Date().toISOString().split("T")[0]}
+                              value={t.free_until || ""}
+                              onChange={(e) => handleSetTenantFreeUntil(t.id, e.target.value)}
+                              className="input-dark text-xs py-1 px-2 w-auto bg-white font-bold"
+                            />
+                            <div className="flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleQuickPromoExtension(t.id, 1)}
+                                className="px-1.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded text-[9px] font-bold"
+                                title="+1 Ay Hediye Et"
+                              >
+                                +1A
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickPromoExtension(t.id, 6)}
+                                className="px-1.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded text-[9px] font-bold"
+                                title="+6 Ay Hediye Et"
+                              >
+                                +6A
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickPromoExtension(t.id, 12)}
+                                className="px-1.5 py-1 bg-[#0066FF] text-white rounded text-[9px] font-bold shadow-xs"
+                                title="+1 Yıl Hediye Et"
+                              >
+                                +1Y
+                              </button>
+                            </div>
+                          </div>
                           {t.free_until && new Date(t.free_until) > new Date() ? (
-                            <span className="text-[10px] text-cyan-600 font-extrabold mt-1 block">
+                            <span className="text-[10px] text-cyan-600 font-extrabold block">
                               🎁 {new Date(t.free_until).toLocaleDateString("tr-TR")}&apos;ye kadar Ücretsiz
                             </span>
                           ) : (
-                            <span className="text-[10px] text-slate-400 mt-1 block">Tarih Seçilmedi</span>
+                            <span className="text-[10px] text-slate-400 block">Promo Tarihi Yok</span>
                           )}
                         </td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border ${
+                        <td className="p-4 space-y-1">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border inline-block ${
                             t.status === "active" ? "bg-emerald-100 text-emerald-800 border-emerald-200" :
                             t.status === "suspended" ? "bg-rose-100 text-rose-800 border-rose-200" :
                             "bg-amber-100 text-amber-800 border-amber-200"
                           }`}>
                             {t.status === "active" ? "● Aktif" : t.status === "suspended" ? "🔒 Donduruldu" : "⏳ Kurulumda"}
                           </span>
+                          {t.status === "suspended" && t.suspended_until && (
+                            <span className="text-[10px] text-rose-600 font-bold block">
+                              ⏳ Bitiş: {new Date(t.suspended_until).toLocaleDateString("tr-TR")}
+                            </span>
+                          )}
+                          <div className="flex items-center gap-1 pt-0.5">
+                            <button
+                              type="button"
+                              onClick={() => handleSetTenantSuspendedUntil(t.id, undefined, 7)}
+                              className="px-1.5 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded text-[9px] font-bold"
+                              title="7 Gün Dondur"
+                            >
+                              7G
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSetTenantSuspendedUntil(t.id, undefined, 30)}
+                              className="px-1.5 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded text-[9px] font-bold"
+                              title="30 Gün Dondur"
+                            >
+                              30G
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSetTenantSuspendedUntil(t.id, undefined, 90)}
+                              className="px-1.5 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded text-[9px] font-bold"
+                              title="90 Gün Dondur"
+                            >
+                              90G
+                            </button>
+                            <input
+                              type="date"
+                              min={new Date().toISOString().split("T")[0]}
+                              value={t.suspended_until || ""}
+                              onChange={(e) => handleSetTenantSuspendedUntil(t.id, e.target.value)}
+                              className="input-dark text-[10px] py-0.5 px-1.5 w-auto bg-white font-bold"
+                              title="Özel Dondurma Bitiş Tarihi Seç"
+                            />
+                          </div>
                         </td>
-                        <td className="p-4 text-right space-x-2">
-
+                        <td className="p-4 text-right">
                           <button
-                            onClick={() => handleToggleTenantStatus(t.id)}
-                            className={`px-2.5 py-1.5 rounded-xl font-bold text-[10px] border transition-all ${
-                              t.status === "active"
-                                ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
-                                : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                            }`}
+                            type="button"
+                            onClick={() => setProfileTenant(t)}
+                            className="px-3.5 py-2 rounded-xl font-extrabold text-xs bg-[#0066FF] hover:bg-blue-600 text-white shadow-md transition-all inline-flex items-center gap-1.5 cursor-pointer hover:scale-105"
+                            title="İşletmenin detaylı satış, abonelik ve profil yönetimi kartını aç"
                           >
-                            {t.status === "active" ? "Dondur" : "Aktifleştir"}
-                          </button>
-
-                          <button
-                            onClick={() => handleDeleteTenant(t.id, t.name)}
-                            className="px-2.5 py-1.5 rounded-xl font-bold text-[10px] bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition-all"
-                          >
-                            Sil 🗑️
+                            <span>👤 Profil & Yönetim</span>
                           </button>
                         </td>
                       </tr>
@@ -1051,45 +1228,64 @@ export default function AdminDashboardPage() {
                           <option value="customer">👤 Müşteri</option>
                         </select>
                       </td>
-                      <td className="p-4">
-                        <span className={`px-2 py-0.5 rounded font-extrabold text-[10px] uppercase border ${
-                          u.status === "banned"
-                            ? "bg-rose-100 text-rose-800 border-rose-200"
-                            : "bg-emerald-100 text-emerald-800 border-emerald-200"
-                        }`}>
-                          {u.status === "banned" ? "🔒 Engelli" : "● Aktif"}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right space-x-1.5">
-                        <button
-                          onClick={() => handleStartEditUser(u)}
-                          className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 font-extrabold text-[10px]"
-                          title="Kullanıcı Detaylarını Düzenle ve Kaydet"
-                        >
-                          ✏️ Düzenle
-                        </button>
-                        <button
-                          onClick={() => handleResetUserPassword(u.email)}
-                          className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px]"
-                          title="Şifre Sıfırlama Bağlantısı Gönder"
-                        >
-                          🔑 Şifre
-                        </button>
-                        <button
-                          onClick={() => handleToggleUserBan(u.id, u.fullName)}
-                          className={`px-2.5 py-1.5 rounded-lg font-bold text-[10px] border transition-all ${
+                      <td className="p-4 space-y-1">
+                        <div className="flex items-center gap-1">
+                          <span className={`px-2 py-0.5 rounded font-extrabold text-[10px] uppercase border ${
                             u.status === "banned"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                              : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
-                          }`}
-                        >
-                          {u.status === "banned" ? "Engeli Aç" : "Engelle"}
-                        </button>
+                              ? "bg-rose-100 text-rose-800 border-rose-200"
+                              : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                          }`}>
+                            {u.status === "banned" ? "🔒 Engelli" : "● Aktif"}
+                          </span>
+                        </div>
+                        {u.status === "banned" && u.banned_until && (
+                          <span className="text-[10px] text-rose-600 font-bold block">
+                            ⏳ Bitiş: {new Date(u.banned_until).toLocaleDateString("tr-TR")}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-1 pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleSetUserBanUntil(u.id, undefined, 7)}
+                            className="px-1.5 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[9px] font-bold"
+                            title="7 Gün Engelle"
+                          >
+                            7G
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSetUserBanUntil(u.id, undefined, 30)}
+                            className="px-1.5 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[9px] font-bold"
+                            title="30 Gün Engelle"
+                          >
+                            30G
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSetUserBanUntil(u.id, undefined, 90)}
+                            className="px-1.5 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[9px] font-bold"
+                            title="90 Gün Engelle"
+                          >
+                            90G
+                          </button>
+                          <input
+                            type="date"
+                            min={new Date().toISOString().split("T")[0]}
+                            value={u.banned_until || ""}
+                            onChange={(e) => handleSetUserBanUntil(u.id, e.target.value)}
+                            className="input-dark text-[10px] py-0.5 px-1.5 w-auto bg-white font-bold"
+                            title="Özel Bitiş Tarihi Seç"
+                          />
+                        </div>
+                      </td>
+                      <td className="p-4 text-right">
                         <button
-                          onClick={() => handleDeleteUser(u.id, u.fullName)}
-                          className="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[10px] hover:bg-rose-100"
+                          type="button"
+                          onClick={() => setProfileUser(u)}
+                          className="px-3 py-1.5 rounded-xl font-extrabold text-xs bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all inline-flex items-center gap-1.5 cursor-pointer hover:scale-105"
+                          title="Kullanıcının detaylı satış, yetki ve profil kartını aç"
                         >
-                          Sil 🗑️
+                          <span>👤 Kullanıcı Profili</span>
                         </button>
                       </td>
                     </tr>
@@ -1814,6 +2010,383 @@ export default function AdminDashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 🏢 İŞLETME DETAYLI PROFİL & SATIŞ YÖNETİM MODALI */}
+      {profileTenant && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-6 animate-fadeIn my-8">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#0066FF] text-white font-extrabold text-xl flex items-center justify-center shadow-md">
+                  🏢
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 font-display">
+                    {profileTenant.name}
+                  </h3>
+                  <span className="text-xs font-mono text-slate-400">/{profileTenant.slug} • ID: {profileTenant.id}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProfileTenant(null)}
+                className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Satışlar & Finans Raporu */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase text-emerald-800 tracking-wider">Toplam Ciro / Satış</span>
+                <h4 className="text-xl font-black text-emerald-950 font-display">
+                  ₺{(profileTenant.mrr_amount * 12 + 14850).toLocaleString("tr-TR")}
+                </h4>
+                <span className="text-[10px] font-bold text-emerald-700 block">✓ Kesilen 128 Adet Adisyon</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase text-indigo-800 tracking-wider">Abonelik MRR</span>
+                <h4 className="text-xl font-black text-indigo-950 font-display">
+                  ₺{profileTenant.mrr_amount}/Ay
+                </h4>
+                <span className="text-[10px] font-bold text-indigo-700 uppercase block">Paket: {profileTenant.subscription_tier}</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase text-purple-800 tracking-wider">Sektör Kategorisi</span>
+                <h4 className="text-lg font-black text-purple-950 font-display uppercase">
+                  {profileTenant.sector}
+                </h4>
+                <span className="text-[10px] font-bold text-purple-700 block">Sektörel İzolasyon Aktif</span>
+              </div>
+            </div>
+
+            {/* Sektör & Paket Ayarları */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4 text-xs">
+              <h4 className="font-extrabold text-slate-900 uppercase text-[11px] tracking-wider">
+                ⚙️ İşletme Profil & Konfigürasyon Ayarları
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Sektör Tipi Override</label>
+                  <select
+                    value={profileTenant.sector}
+                    onChange={(e) => {
+                      handleChangeTenantSector(profileTenant.id, e.target.value);
+                      setProfileTenant({ ...profileTenant, sector: e.target.value });
+                    }}
+                    className="input-dark bg-white text-xs font-bold text-cyan-800"
+                  >
+                    <option value="legal">⚖️ Hukuk Bürosu</option>
+                    <option value="clinic">🩺 Klinik</option>
+                    <option value="beauty">💄 Güzellik Salonu</option>
+                    <option value="barber">💈 Berber</option>
+                    <option value="spa">💆 Spa & Masaj</option>
+                    <option value="auto">🚗 Oto Servis</option>
+                    <option value="fitness">💪 Fitness & Pilates</option>
+                    <option value="vet">🐾 Veteriner Kliniği</option>
+                    <option value="coaching">📚 Danışmanlık & Koçluk</option>
+                    <option value="photo">📸 Fotoğraf Stüdyosu</option>
+                    <option value="coworking">🏢 Coworking</option>
+                    <option value="driving">🚘 Sürücü Kursu</option>
+                    <option value="restoran">🍽️ Restoran</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Abonelik Paketi</label>
+                  <select
+                    value={profileTenant.subscription_tier}
+                    onChange={(e) => {
+                      const newTier = e.target.value as any;
+                      handleChangeTenantTier(profileTenant.id, newTier);
+                      const newMrr = newTier === "enterprise" ? 1499 : newTier === "pro" ? 499 : 0;
+                      setProfileTenant({ ...profileTenant, subscription_tier: newTier, mrr_amount: newMrr });
+                    }}
+                    className="input-dark bg-white text-xs font-extrabold text-[#1E1B4B]"
+                  >
+                    <option value="starter">Starter (₺0/Ay)</option>
+                    <option value="pro">Pro (₺499/Ay)</option>
+                    <option value="enterprise">Enterprise (₺1.499/Ay)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Hızlı Promosyon Süre Uzatma */}
+              <div className="pt-2 border-t border-slate-200/80 space-y-2">
+                <label className="block font-bold text-slate-700">🎁 Ücretsiz Promosyon Lisansı (Bitiş Tarihi)</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="date"
+                    min={new Date().toISOString().split("T")[0]}
+                    value={profileTenant.free_until || ""}
+                    onChange={(e) => {
+                      handleSetTenantFreeUntil(profileTenant.id, e.target.value);
+                      setProfileTenant({ ...profileTenant, free_until: e.target.value });
+                    }}
+                    className="input-dark text-xs py-1.5 px-3 bg-white font-bold w-auto"
+                  />
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleQuickPromoExtension(profileTenant.id, 1);
+                        const d = new Date(); d.setMonth(d.getMonth() + 1);
+                        setProfileTenant({ ...profileTenant, free_until: d.toISOString().split("T")[0] });
+                      }}
+                      className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-xl text-xs font-extrabold"
+                    >
+                      +1 Ay Hediye
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleQuickPromoExtension(profileTenant.id, 6);
+                        const d = new Date(); d.setMonth(d.getMonth() + 6);
+                        setProfileTenant({ ...profileTenant, free_until: d.toISOString().split("T")[0] });
+                      }}
+                      className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-xl text-xs font-extrabold"
+                    >
+                      +6 Ay Hediye
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleQuickPromoExtension(profileTenant.id, 12);
+                        const d = new Date(); d.setMonth(d.getMonth() + 12);
+                        setProfileTenant({ ...profileTenant, free_until: d.toISOString().split("T")[0] });
+                      }}
+                      className="px-2.5 py-1.5 bg-[#0066FF] text-white rounded-xl text-xs font-extrabold shadow-xs"
+                    >
+                      +1 Yıl VIP
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Süreli Dondurma */}
+              <div className="pt-2 border-t border-slate-200/80 space-y-2">
+                <label className="block font-bold text-slate-700">🔒 Erişim & Dondurma Süresi</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase border ${
+                    profileTenant.status === "active" ? "bg-emerald-100 text-emerald-800 border-emerald-200" :
+                    profileTenant.status === "suspended" ? "bg-rose-100 text-rose-800 border-rose-200" :
+                    "bg-amber-100 text-amber-800 border-amber-200"
+                  }`}>
+                    {profileTenant.status === "active" ? "● Aktif" : profileTenant.status === "suspended" ? "🔒 Donduruldu" : "⏳ Kurulumda"}
+                  </span>
+
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleSetTenantSuspendedUntil(profileTenant.id, undefined, 7);
+                        const d = new Date(); d.setDate(d.getDate() + 7);
+                        setProfileTenant({ ...profileTenant, status: "suspended", suspended_until: d.toISOString().split("T")[0] });
+                      }}
+                      className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-extrabold"
+                    >
+                      7 Gün Dondur
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleSetTenantSuspendedUntil(profileTenant.id, undefined, 30);
+                        const d = new Date(); d.setDate(d.getDate() + 30);
+                        setProfileTenant({ ...profileTenant, status: "suspended", suspended_until: d.toISOString().split("T")[0] });
+                      }}
+                      className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-extrabold"
+                    >
+                      30 Gün Dondur
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleSetTenantSuspendedUntil(profileTenant.id, undefined, 90);
+                        const d = new Date(); d.setDate(d.getDate() + 90);
+                        setProfileTenant({ ...profileTenant, status: "suspended", suspended_until: d.toISOString().split("T")[0] });
+                      }}
+                      className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-extrabold"
+                    >
+                      90 Gün Dondur
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleToggleTenantStatus(profileTenant.id);
+                        const nextS = profileTenant.status === "active" ? "suspended" : "active";
+                        setProfileTenant({ ...profileTenant, status: nextS });
+                      }}
+                      className="px-3 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-extrabold"
+                    >
+                      {profileTenant.status === "active" ? "🔒 Hemen Dondur" : "✓ Aktifleştir"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Alt Aksiyonlar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  handleImpersonateTenant(profileTenant);
+                  setProfileTenant(null);
+                }}
+                className="w-full sm:w-auto py-2.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-105"
+              >
+                <span>🔍 Bu İşletmenin Canlı Paneline Bürün</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleDeleteTenant(profileTenant.id, profileTenant.name);
+                  setProfileTenant(null);
+                }}
+                className="w-full sm:w-auto py-2.5 px-5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-extrabold rounded-xl text-xs border border-rose-200 transition-all cursor-pointer"
+              >
+                İşletmeyi Sil 🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 👤 KULLANICI DETAYLI PROFİL & YETKİ MODALI */}
+      {profileUser && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-fadeIn my-8">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white font-extrabold text-xl flex items-center justify-center shadow-md">
+                  👤
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 font-display">
+                    {profileUser.fullName}
+                  </h3>
+                  <span className="text-xs font-mono text-slate-400">{profileUser.email}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProfileUser(null)}
+                className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* İletişim & Rol Bilgileri */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-bold uppercase">Bağlı İşletme:</span>
+                <span className="font-extrabold text-slate-900">{profileUser.businessName || "— (Platform)"}</span>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-bold uppercase">Telefon:</span>
+                <span className="font-bold text-slate-900">{profileUser.phone || "Telefon Belirtilmedi"}</span>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-bold uppercase">Kullanıcı Rolü:</span>
+                <select
+                  value={profileUser.role}
+                  onChange={(e) => {
+                    handleRoleChange(profileUser.id, e.target.value as any);
+                    setProfileUser({ ...profileUser, role: e.target.value as any });
+                  }}
+                  className="input-dark bg-white py-1 px-2 text-xs w-auto font-bold"
+                >
+                  {profileUser.role === "admin" && <option value="admin">👑 Super Admin</option>}
+                  <option value="owner">💼 Salon Sahibi</option>
+                  <option value="staff">✂️ Personel</option>
+                  <option value="customer">👤 Müşteri</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Engelleme & Süre Ayarları */}
+            <div className="p-4 bg-rose-50/60 border border-rose-200 rounded-2xl space-y-3 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-rose-950 uppercase">Hesap Engelleme Süreçleri</span>
+                <span className={`px-2.5 py-0.5 rounded font-extrabold text-[10px] uppercase border ${
+                  profileUser.status === "banned" ? "bg-rose-600 text-white border-rose-700" : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                }`}>
+                  {profileUser.status === "banned" ? "🔒 Engelli" : "● Aktif"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSetUserBanUntil(profileUser.id, undefined, 7);
+                    const d = new Date(); d.setDate(d.getDate() + 7);
+                    setProfileUser({ ...profileUser, status: "banned", banned_until: d.toISOString().split("T")[0] });
+                  }}
+                  className="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg text-xs font-bold"
+                >
+                  7 Gün Engelle
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSetUserBanUntil(profileUser.id, undefined, 30);
+                    const d = new Date(); d.setDate(d.getDate() + 30);
+                    setProfileUser({ ...profileUser, status: "banned", banned_until: d.toISOString().split("T")[0] });
+                  }}
+                  className="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg text-xs font-bold"
+                >
+                  30 Gün Engelle
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleToggleUserBan(profileUser.id, profileUser.fullName);
+                    const nextS = profileUser.status === "banned" ? "active" : "banned";
+                    setProfileUser({ ...profileUser, status: nextS });
+                  }}
+                  className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold ml-auto"
+                >
+                  {profileUser.status === "banned" ? "✓ Engeli Aç" : "🔒 Engelle"}
+                </button>
+              </div>
+            </div>
+
+            {/* Eylemler */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  handleResetUserPassword(profileUser.email);
+                }}
+                className="btn-secondary text-xs py-2.5 flex-1 justify-center font-extrabold"
+              >
+                🔑 Şifre Bağlantısı Gönder
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleDeleteUser(profileUser.id, profileUser.fullName);
+                  setProfileUser(null);
+                }}
+                className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-extrabold border border-rose-200"
+              >
+                Sil 🗑️
+              </button>
+            </div>
           </div>
         </div>
       )}

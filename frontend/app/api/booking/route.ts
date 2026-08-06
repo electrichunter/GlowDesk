@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://backend:8000/api';
+    const backendUrl = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || '/api';
 
     // Send directly to FastAPI backend -> MySQL
     const res = await fetch(`${backendUrl}/appointments/`, {

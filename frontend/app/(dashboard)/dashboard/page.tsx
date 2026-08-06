@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import StatsCard from "@/components/dashboard/StatsCard";
+import DynamicStatsCards from "@/components/dashboard/DynamicStatsCards";
 import AppointmentCard from "@/components/dashboard/AppointmentCard";
 import { formatPrice } from "@/__mocks__/mock-data";
 import { getCurrentSession } from "@/lib/session";
@@ -14,11 +15,11 @@ import { useTenant } from "@/contexts/TenantContext";
 import PlanFeatureGate from "@/components/dashboard/PlanFeatureGate";
 
 export default function DashboardPage() {
-  const { activePlan, planConfig, openUpgradeModal, hasFeature } = useTenant();
+  const { activePlan, planConfig, openUpgradeModal, hasFeature, verticalConfig } = useTenant();
 
   const [loading, setLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Record<string, number>>({
     today_appointments: 0,
     today_confirmed: 0,
     today_no_show: 0,
@@ -114,6 +115,30 @@ export default function DashboardPage() {
               monthly_appointments: completed,
               no_show_rate: formatted.length > 0 ? Math.round((noShow / formatted.length) * 100) : 0,
               waitlist_count: 2,
+
+              // Sektöre Özel Metrik Eşleşmeleri
+              open_cases: 14,
+              deposit_pending: 3,
+              lab_orders_pending: 4,
+              recalled_patients: 12,
+              bay_occupancy: 75,
+              storage_bins_used: 48,
+              active_members: 128,
+              class_occupancy: 92,
+              vaccines_due: 5,
+              pet_hotel_occupancy: 80,
+              assignments_pending: 3,
+              active_students: 42,
+              gallery_reviews_pending: 6,
+              rented_equipment: 9,
+              vip_room_occupancy: 85,
+              vouchers_sold: 18,
+              room_occupancy: 78,
+              corporate_credits_used: 340,
+              completed_hours: 142,
+              exam_candidates: 11,
+              total_guests: 64,
+              table_occupancy: 82,
             });
           }
         } catch (err) {
@@ -218,8 +243,8 @@ export default function DashboardPage() {
               💼 Kontrol Merkezi
             </span>
             {isNewUser && (
-              <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold rounded-full border border-emerald-200">
-                🎉 Yeni Salon
+              <span className="px-2.5 py-0.5 bg-[#0066FF]/10 text-[#0066FF] text-[10px] font-extrabold rounded-full border border-blue-200">
+                🎉 Yeni {verticalConfig?.label || "İşletme"}
               </span>
             )}
           </div>
@@ -227,7 +252,7 @@ export default function DashboardPage() {
             Hoş Geldiniz, {userName || businessName}!
           </h1>
           <p className="text-slate-500 text-xs font-medium">
-            {businessName} canlı randevu takibi, POS kasa ve günlük performans kontrolü.
+            {businessName} — {verticalConfig?.label || "İşletme"} Canlı Takip ve Yönetim Paneli.
           </p>
         </div>
 
@@ -245,7 +270,7 @@ export default function DashboardPage() {
             onClick={() => setBulkInvoiceModalOpen(true)}
             className="btn-secondary-white text-xs py-2.5 px-4"
           >
-            🧾 Toplu Fiş Kes
+            🧾 Adisyon & Hizmet Özeti
           </button>
           <button 
             onClick={() => setZReportModalOpen(true)}
@@ -262,45 +287,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── İSTATİSTİK BENTO GRID ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {loading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : (
-          <>
-            <StatsCard
-              title="Bugünkü Randevu"
-              value={stats.today_appointments}
-              subtext="Toplam planlanmış seans"
-              icon="📅"
-            />
-            <StatsCard
-              title="Onaylananlar"
-              value={stats.today_confirmed}
-              subtext="Gelişi kesinleşen müşteri"
-              icon="✅"
-            />
-            <StatsCard
-              title="Gün Sonu Kasa"
-              value={`₺${dailyPosTotal.total.toLocaleString("tr-TR")}`}
-              subtext={`Nakit: ₺${dailyPosTotal.nakit} | POS: ₺${dailyPosTotal.kredi}`}
-              icon="💳"
-            />
-            <StatsCard
-              title="Aylık Net Gelir"
-              value={`₺${stats.monthly_revenue.toLocaleString("tr-TR")}`}
-              subtext="Komisyonsuz net kazanç"
-              trend={{ value: stats.monthly_revenue > 0 ? "+%12.4 artış" : "₺0 Ciro", isPositive: true }}
-              icon="💰"
-            />
-          </>
-        )}
-      </div>
+      {/* ── SEKTÖRE ÖZEL DİNAMİK İSTATİSTİK BENTO GRID ── */}
+      <DynamicStatsCards stats={stats} isLoading={loading} />
 
       {/* ── ENTERPRISE AI ASİSTAN & AKILLI İŞ ÖNERİLERİ MOTORU ── */}
       <PlanFeatureGate

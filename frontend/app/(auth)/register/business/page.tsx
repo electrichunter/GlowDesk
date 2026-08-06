@@ -8,12 +8,18 @@ import { isValidEmail, sanitizeText, toSlug, checkPasswordStrength } from "@/lib
 import { TURKEY_CITIES } from "@/lib/cities";
 
 const SECTORS = [
-  { id: "beauty", label: "Güzellik & Bakım", icon: "💄", desc: "Kuaför, Estetik & Cilt Bakımı" },
-  { id: "barber", label: "Berber & Kuaför", icon: "💈", desc: "Erkek Kuaförü & Sakal Tasarımı" },
-  { id: "massage", label: "Masaj & Spa", icon: "💆", desc: "Wellness, Terapi & Masaj" },
-  { id: "clinic", label: "Klinik & Estetik", icon: "🩺", desc: "Medikal Estetik & Diş Hekimi" },
-  { id: "restaurant", label: "Restoran & Kafe", icon: "🍽️", desc: "Masa & Rezervasyon Yönetimi" },
   { id: "legal", label: "Hukuk & Danışmanlık", icon: "⚖️", desc: "Avukatlık & Danışmanlık Bürosu" },
+  { id: "clinic", label: "Klinik & Poliklinik", icon: "🩺", desc: "Diş, Medikal Estetik & Sağlık" },
+  { id: "beauty", label: "Güzellik & Bakım", icon: "💄", desc: "Güzellik Salonu & Estetik" },
+  { id: "barber", label: "Berber & Erkek Kuaförü", icon: "💈", desc: "Erkek Kuaförü & Sakal Tasarımı" },
+  { id: "spa", label: "Masaj & Spa", icon: "💆", desc: "Wellness, Terapi & Spa" },
+  { id: "auto", label: "Oto Bakım & Detailing", icon: "🚗", desc: "Oto Servis, Lift & Detailing" },
+  { id: "fitness", label: "Fitness & Pilates", icon: "💪", desc: "Butik Stüdyo & Pilates" },
+  { id: "vet", label: "Veteriner & Pet Care", icon: "🐾", desc: "Klinik & Pet Grooming" },
+  { id: "coaching", label: "Özel Ders & Koçluk", icon: "📚", desc: "Eğitim & Danışmanlık" },
+  { id: "photo", label: "Fotoğraf Stüdyosu", icon: "📸", desc: "Çekim Platoları & Ekipman" },
+  { id: "coworking", label: "Toplantı Odası & Coworking", icon: "🏢", desc: "Ortak Çalışma & Plaza" },
+  { id: "restoran", label: "Restoran & Kafe", icon: "🍽️", desc: "Masa & Rezervasyon Yönetimi" },
 ];
 
 const STAFF_OPTIONS = [
@@ -169,16 +175,6 @@ export default function BusinessRegisterPage() {
         setSessionCookie(data.token);
         if (typeof localStorage !== "undefined") {
           localStorage.setItem("glowdesk_active_user", JSON.stringify(data.user));
-        }
-
-        if (data.user?.tenantId) {
-          try {
-            await apiRequest(`/tenants/${data.user.tenantId}/seed-demo?sector=${sector}`, {
-              method: 'POST'
-            });
-          } catch (e) {
-            console.warn("Seeding demo data warning:", e);
-          }
         }
 
         setLoading(false);

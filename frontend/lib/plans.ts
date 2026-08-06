@@ -87,7 +87,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanConfig> = {
     monthlyPrice: 499,
     yearlyPriceMonthly: 399,
     popular: true,
-    description: 'Büyüyen salonlar, klinikler ve ekipler için gelişmiş otomasyon ve çoklu şube desteği.',
+    description: 'Büyüyen işletmeler ve ekipler için gelişmiş otomasyon ve çoklu şube desteği.',
     limits: {
       maxBranches: 3,
       maxStaff: 15,

@@ -23,6 +23,27 @@ export const VERTICAL_CONFIG: Record<VerticalKey, VerticalDefinition> = {
     serviceLabel: 'Hizmet',
     pricingBadge: 'Personel & Koltuk Bazlı SaaS',
     pricingModelDescription: 'Aylık sabit abonelik paketi. Sınırsız müşteri ve SMS bildirim desteği.',
+    settingsTitle: 'Güzellik Salonu Ayarları',
+  },
+
+  // ── 1b. Berber & Erkek Kuaförü ────────────────────────────────────────────────
+  barber: {
+    slug: 'barber',
+    label: 'Berber & Erkek Kuaförü',
+    displayName: 'Berber Yönetimi',
+    seoTitle: 'Berber ve Erkek Kuaförü Randevu Yazılımı | GlowDesk',
+    seoDescription: 'Koltuk takvimi, sakal/saç tıraş paketleri, sıradaki müşteri ekranı ve prim takibi.',
+    ogDescription: 'Erkek kuaförleri ve berberler için akıllı koltuk ve randevu yönetim platformu.',
+    heroHeadline: 'Erkek Kuaför Koltuklarınızı Tam Dolulukla Yönetin',
+    heroSubline: 'Sıradaki müşteri canlı takip ekranı, sakal/saç bakım paketleri ve personel primi.',
+    accentColor: 'amber',
+    icon: '💈',
+    customerLabel: 'Müşteri',
+    appointmentLabel: 'Tıraş / Randevu',
+    serviceLabel: 'Tıraş & Bakım Türü',
+    pricingBadge: 'Koltuk Bazlı Sabit Fiyat',
+    pricingModelDescription: 'Koltuk sayısına göre uygun paket.',
+    settingsTitle: 'Berber & Erkek Kuaförü Ayarları',
   },
 
   // ── 2. Diş Klinikleri ve Poliklinikler ──────────────────────────────────────
@@ -42,6 +63,7 @@ export const VERTICAL_CONFIG: Record<VerticalKey, VerticalDefinition> = {
     serviceLabel: 'İşlem / Protokol',
     pricingBadge: 'Koltuk / Ünit Bazlı SaaS',
     pricingModelDescription: 'Klinik koltuk sayısına göre ölçeklenen kurumsal paket.',
+    settingsTitle: 'Klinik Ayarları',
   },
 
   // ── 3. Oto Servis & Detaylı Temizlik ───────────────────────────────────────

@@ -4,7 +4,7 @@ import type { VerticalKey } from './verticals/types';
 
 export type { VerticalKey };
 
-export type BusinessSector = 'beauty' | 'spa' | 'clinic' | 'barber' | 'massage' | 'hukuk' | 'restoran' | 'salon';
+export type BusinessSector = 'beauty' | 'spa' | 'clinic' | 'barber' | 'massage' | 'legal' | 'hukuk' | 'restoran' | 'salon' | 'auto' | 'fitness' | 'vet' | 'coaching' | 'photo' | 'coworking' | 'driving';
 
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 

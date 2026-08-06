@@ -1,11 +1,11 @@
 /**
- * GlowDesk — Şeffaf FastAPI v1 REST İstemcisi & Entegrasyon Katmanı
- * Single Source of Truth: Core MySQL + FastAPI Backend (/api/v1)
+ * GlowDesk — Şeffaf FastAPI REST İstemcisi & Entegrasyon Katmanı
+ * Single Source of Truth: Core FastAPI Backend (/api)
  */
 
 import { getSessionCookie } from './session';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export interface ApiResponse<T> {
   data: T | null;
@@ -32,7 +32,7 @@ export async function apiRequest<T = any>(
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const url = typeof window !== 'undefined'
       ? `${API_BASE}${cleanEndpoint}`
-      : `${process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000/api/v1'}${cleanEndpoint}`;
+      : `${process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000/api'}${cleanEndpoint}`;
 
     const res = await fetch(url, {
       ...options,
