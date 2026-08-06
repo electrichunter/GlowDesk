@@ -274,6 +274,13 @@ export default function Navbar() {
             >
               Blog
             </Link>
+
+            <Link
+              href="/book/demo-salon"
+              className="px-3.5 py-1.5 rounded-full bg-blue-50 text-[#0066FF] border border-blue-200 hover:bg-[#0066FF] hover:text-white font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 scale-102"
+            >
+              <span>📅 Randevu Al</span>
+            </Link>
           </div>
 
           {/* Right Controls */}
@@ -431,6 +438,14 @@ export default function Navbar() {
               >
                 <span>📝 Blog &amp; Rehberler</span>
                 <span className="text-slate-400">→</span>
+              </Link>
+              <Link
+                href="/book/demo-salon"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-between p-3 rounded-2xl bg-blue-50/80 border border-blue-200 text-sm font-extrabold text-[#0066FF] active:scale-[0.99] transition-all"
+              >
+                <span>📅 Online Randevu Al</span>
+                <span>→</span>
               </Link>
             </div>
 
