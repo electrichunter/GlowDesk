@@ -83,39 +83,39 @@ export default function Interactive3DScrollFlow() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full min-h-[300vh] bg-slate-950 text-white border-y border-slate-800/80 overflow-clip"
+      className="relative w-full min-h-[220vh] bg-slate-950 text-white border-y border-slate-800/80 overflow-clip"
     >
       {/* Dynamic Background Glow Grid */}
-      <div className="sticky top-0 h-screen w-full flex flex-col justify-between overflow-hidden">
+      <div className="sticky top-0 h-screen w-full flex flex-col justify-between overflow-hidden py-4 sm:py-6">
         
         {/* Background Gradients */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,102,255,0.15),transparent_70%)] pointer-events-none" />
-        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,102,255,0.12),transparent_70%)] pointer-events-none" />
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* HEADER AREA */}
-        <div className="relative z-20 pt-8 px-6 text-center max-w-4xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-950/80 border border-blue-800/60 text-blue-400 text-xs font-bold shadow-lg">
-            <span>✨ 3D İnteraktif Deneyim</span>
+        <div className="relative z-20 px-4 text-center max-w-3xl mx-auto space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-800/60 text-blue-400 text-xs font-bold shadow-md">
+            <span>✨ 3D İnteraktif Akış</span>
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight font-display">
-            Randevudan Kasaya <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">3D Akış</span>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight font-display">
+            Randevudan Kasaya <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">3D Otomasyon Akışı</span>
           </h2>
-          <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
-            Sayfayı aşağı kaydırdıkça kartların 3D uzayda dönerek randevudan tahsilata nasıl dönüştüğünü canlı izleyin.
+          <p className="text-slate-400 text-xs max-w-lg mx-auto">
+            Sayfayı aşağı kaydırdıkça randevunun 3D uzayda dönerek kaynak ataması ve kasa tahsilatına dönüşmesini izleyin.
           </p>
 
           {/* Sector Switcher Pill Tabs */}
-          <div className="flex flex-wrap justify-center gap-2 pt-2">
+          <div className="flex flex-wrap justify-center gap-1.5 pt-1">
             {SECTOR_RESOURCES.map((s, idx) => (
               <button
                 key={s.key}
                 type="button"
                 onClick={() => setSelectedSector(idx)}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   selectedSector === idx
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/30 scale-105"
                     : "bg-slate-900/80 text-slate-400 hover:bg-slate-800 border border-slate-800"
                 }`}
               >
@@ -127,9 +127,9 @@ export default function Interactive3DScrollFlow() {
         </div>
 
         {/* ─── 3D VIEWPORT STAGE ────────────────────────────────────────── */}
-        <div className="relative z-10 flex-1 flex items-center justify-center perspective-[1200px] py-6 px-4">
+        <div className="relative z-10 flex-1 flex items-center justify-center perspective-[1000px] my-auto px-4">
           
-          <div className="relative w-full max-w-xl h-[360px] sm:h-[420px] transform-style-3d transition-transform duration-75 ease-out">
+          <div className="relative w-full max-w-lg h-[320px] sm:h-[360px] transform-style-3d transition-transform duration-75 ease-out scale-90 sm:scale-100">
             
             {/* ── KART 0: CANLI DASHBOARD (0% - 25%) ── */}
             <div

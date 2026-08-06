@@ -225,7 +225,7 @@ export default function LoginPage() {
         <div className="relative z-10 max-w-md space-y-6 my-auto">
           <div className="space-y-4">
             <span className="px-3.5 py-1.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold rounded-full inline-block">
-              💈 💄 💆 🌿 🩺 5 Sektör Tek Otomasyon
+              💈 💄 🚗 🏋️ ⚖️ 🩺 12+ Sektör Tek Otomasyon
             </span>
             <h3 className="text-3xl font-extrabold font-display leading-tight text-white">
               Boş Kalan Saatleri %94 Oranında Kurtarın
