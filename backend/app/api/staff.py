@@ -64,6 +64,35 @@ def create_staff(payload: CreateStaffRequest, db: Session = Depends(get_db)):
         "createdAt": user.created_at.isoformat() if user.created_at else None
     }
 
+@router.get("/public/{tenant_id}")
+def list_public_staff_by_tenant(tenant_id: str, db: Session = Depends(get_db)):
+    staff_members = db.query(User).filter(
+        User.tenant_id == tenant_id,
+        User.role.in_(["staff", "owner"])
+    ).order_by(User.created_at.asc()).all()
+
+    if not staff_members:
+        tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+        t_name = tenant.name if tenant else "İşletme Uzmanı"
+        return [
+            {
+                "id": "staff-default",
+                "fullName": f"{t_name} — Müsait Uzman",
+                "role": "staff",
+                "title": "Uzman"
+            }
+        ]
+
+    return [
+        {
+            "id": s.id,
+            "fullName": s.full_name,
+            "role": s.role,
+            "title": "Uzman"
+        }
+        for s in staff_members
+    ]
+
 @router.get("")
 def list_staff(tenant_id: str, db: Session = Depends(get_db)):
     staff_members = db.query(User).filter(

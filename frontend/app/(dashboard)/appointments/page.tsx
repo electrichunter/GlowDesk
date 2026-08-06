@@ -47,36 +47,43 @@ export default function AppointmentsPage() {
         const { apiRequest } = await import("@/lib/api-client");
         
         // 1. MySQL Appointments
-        const { data: dbApts } = await apiRequest<any[]>("/appointments");
+        const aptUrl = tenant?.id ? `/appointments?tenant_id=${tenant.id}` : "/appointments";
+        const { data: dbApts } = await apiRequest<any[]>(aptUrl);
         if (dbApts && Array.isArray(dbApts)) {
           setAppointments(
-            dbApts.map((a) => ({
-              id: a.id,
-              tenant_id: a.tenant_id,
-              customer_id: a.customer_id,
-              service_id: a.service_id,
-              start_time: a.start_time || `${a.appointment_date}T10:00:00Z`,
-              end_time: a.end_time || `${a.appointment_date}T11:00:00Z`,
-              status: (a.status || "confirmed") as AppointmentStatus,
-              notes: a.notes || undefined,
-              created_at: a.created_at || new Date().toISOString(),
-              customer: {
-                id: a.customer_id || "cust-1",
-                tenant_id: a.tenant_id || "global",
-                full_name: a.customer_name,
-                phone: a.customer_phone,
+            dbApts.map((a) => {
+              const dateStr = a.appointment_date || new Date().toISOString().split("T")[0];
+              const sTime = a.start_time ? (a.start_time.includes("T") ? a.start_time : `${dateStr}T${a.start_time}`) : `${dateStr}T10:00:00Z`;
+              const eTime = a.end_time ? (a.end_time.includes("T") ? a.end_time : `${dateStr}T${a.end_time}`) : `${dateStr}T11:00:00Z`;
+
+              return {
+                id: a.id,
+                tenant_id: a.tenant_id,
+                customer_id: a.customer_id,
+                service_id: a.service_id,
+                start_time: sTime,
+                end_time: eTime,
+                status: (a.status || "scheduled") as AppointmentStatus,
+                notes: a.notes || undefined,
                 created_at: a.created_at || new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              },
-              service: {
-                id: a.service_id || "svc-1",
-                tenant_id: a.tenant_id || "global",
-                name: a.service_name || "Genel Hizmet",
-                duration_minutes: 30,
-                price: parseFloat(a.total_price || 0),
-                created_at: a.created_at || new Date().toISOString(),
-              },
-            }))
+                customer: {
+                  id: a.customer_id || "cust-1",
+                  tenant_id: a.tenant_id || "global",
+                  full_name: a.customer_name,
+                  phone: a.customer_phone,
+                  created_at: a.created_at || new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                },
+                service: {
+                  id: a.service_id || "svc-1",
+                  tenant_id: a.tenant_id || "global",
+                  name: a.service_name || "Genel Hizmet",
+                  duration_minutes: 30,
+                  price: parseFloat(a.total_price || 0),
+                  created_at: new Date().toISOString(),
+                },
+              };
+            })
           );
         }
 
