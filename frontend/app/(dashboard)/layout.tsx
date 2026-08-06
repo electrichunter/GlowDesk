@@ -42,7 +42,7 @@ async function getServerSession() {
 /** Tenant verisini FastAPI Backend'inden veya session'dan çöz */
 async function getTenantById(tenantId: string, session: any): Promise<Tenant | null> {
   try {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://backend:8000/api';
+    const apiBase = process.env.BACKEND_INTERNAL_URL || 'http://backend:8000/api';
     const res = await fetch(`${apiBase}/tenants/${tenantId}`, {
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store'
