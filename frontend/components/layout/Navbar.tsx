@@ -223,12 +223,20 @@ export default function Navbar() {
                 <IconChevronDown />
               </button>
               {activeDropdown === "sectors" && (
-                <div className="absolute top-full left-0 w-60 bg-white rounded-2xl shadow-xl border border-slate-200/80 p-3 space-y-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute top-full left-0 w-64 bg-white rounded-2xl shadow-xl border border-slate-200/80 p-3 space-y-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150 max-h-96 overflow-y-auto">
                   <Link href="/sektorler/guzellik" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">💄 Güzellik &amp; Estetik</Link>
                   <Link href="/sektorler/berber" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">💈 Berber &amp; Kuaför</Link>
-                  <Link href="/sektorler/masaj" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">💆 Masaj Terapisi</Link>
-                  <Link href="/sektorler/masaj" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">🌿 Spa &amp; Wellness</Link>
+                  <Link href="/sektorler/masaj" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">💆 Masaj &amp; Terapi</Link>
+                  <Link href="/sektorler/spa" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">🌿 Spa &amp; Wellness</Link>
                   <Link href="/sektorler/klinik" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">🩺 Klinik &amp; Dermatoloji</Link>
+                  <Link href="/sektorler/hukuk" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">⚖️ Hukuk Bürosu</Link>
+                  <Link href="/sektorler/restoran" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">🍽️ Restoran &amp; Kafe</Link>
+                  <Link href="/sektorler/auto" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">🚗 Oto Bakım &amp; Detailing</Link>
+                  <Link href="/sektorler/fitness" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">🏋️ Fitness &amp; Pilates</Link>
+                  <Link href="/sektorler/vet" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">🐾 Veteriner &amp; Pet Care</Link>
+                  <Link href="/sektorler/coaching" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">🎓 Özel Ders &amp; Koçluk</Link>
+                  <Link href="/sektorler/photo" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">📸 Fotoğraf Stüdyosu</Link>
+                  <Link href="/sektorler/coworking" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] text-xs font-bold text-slate-700 hover:translate-x-1 transition-all">🏢 Coworking &amp; Ofis</Link>
                 </div>
               )}
             </div>

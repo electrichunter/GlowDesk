@@ -234,7 +234,7 @@ export default function OnboardingWizard({
                 </div>
                 <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl">
                   <span className="block text-base mb-1">🔍</span>
-                  <span className="block text-xs font-bold text-[#1E1B4B]">Salon Keşfet</span>
+                  <span className="block text-xs font-bold text-[#1E1B4B]">İşletme Keşfet</span>
                   <span className="block text-[11px] text-slate-500">Bölgenizde öne çıkın</span>
                 </div>
               </div>

@@ -8,16 +8,24 @@ import Footer from "@/components/layout/Footer";
 import ExitIntentModal from "@/components/modals/ExitIntentModal";
 import LiveChatWidget from "@/components/marketing/LiveChatWidget";
 
-// ─── SEKTÖRLER (5 Sektör) ──────────────────────────────────────────────────────
+// ─── SEKTÖRLER (12 Sektör) ──────────────────────────────────────────────────────
 const SECTORS = [
-  { key: "beauty",  icon: "💄", label: "Güzellik" },
-  { key: "barber",  icon: "💈", label: "Berber" },
-  { key: "massage", icon: "💆", label: "Masaj" },
-  { key: "spa",     icon: "🌿", label: "Spa" },
-  { key: "clinic",  icon: "🩺", label: "Klinik" },
+  { key: "beauty",    icon: "💄", label: "Güzellik" },
+  { key: "barber",    icon: "💈", label: "Berber" },
+  { key: "massage",   icon: "💆", label: "Masaj" },
+  { key: "spa",       icon: "🌿", label: "Spa" },
+  { key: "clinic",    icon: "🩺", label: "Klinik" },
+  { key: "auto",      icon: "🚗", label: "Oto Bakım" },
+  { key: "fitness",   icon: "🏋️", label: "Fitness" },
+  { key: "vet",       icon: "🐾", label: "Veteriner" },
+  { key: "coaching",  icon: "🎓", label: "Koçluk" },
+  { key: "legal",     icon: "⚖️", label: "Hukuk" },
+  { key: "photo",     icon: "📸", label: "Fotoğraf" },
+  { key: "coworking", icon: "🏢", label: "Coworking" },
+  { key: "restoran",  icon: "🍽️", label: "Restoran" },
 ] as const;
 
-type SectorKey = "beauty" | "barber" | "massage" | "spa" | "clinic";
+type SectorKey = "beauty" | "barber" | "massage" | "spa" | "clinic" | "auto" | "fitness" | "vet" | "coaching" | "legal" | "photo" | "coworking" | "restoran";
 
 const sectorData: Record<SectorKey, {
   title: string;
@@ -54,6 +62,54 @@ const sectorData: Record<SectorKey, {
     badge: "Kurumsal & Medikal Dil",
     sms: "🩺 Sayın Merve Şahin, Uzm. Dermatolog randevunuz yarın 14:00'tedir. Klinik takvimi kesinleştirmek için yanıtınızı bekliyoruz. (EVET/DEĞİŞTİR)",
     metric: "Zaman Kaybı %85 Azaldı",
+  },
+  auto: {
+    title: "Apex Detailing & Oto Servis",
+    badge: "Hızlı & Teknik Dil",
+    sms: "🚗 Sayın Ahmet Bey! Seramik kaplama ve periyodik bakım randevunuz yarın 09:00'dadır. Liftiniz hazır. Onaylıyor musunuz? (EVET/İPTAL)",
+    metric: "Lift Doluluk Oranı %98",
+  },
+  fitness: {
+    title: "Pulse Pilates & Functional",
+    badge: "Motive Edici & Dinamik Dil",
+    sms: "🏋️ Harika bir antrenmana hazır mısın Elif? Yarın 18:00 Reformer Pilates dersin onay bekliyor. Hedefine ulaşmak için teyit ver! (EVET/DEĞİŞTİR)",
+    metric: "Ders İptalleri %90 Engellendi",
+  },
+  vet: {
+    title: "Paws & Care Veteriner Kliniği",
+    badge: "Şefkatli & Hassas Dil",
+    sms: "🐾 Merhaba Ali Bey! Pamuk'un aşı ve sağlık kontrolü randevusu yarın 15:30'dadır. Minik dostumuzu bekliyoruz! (EVET/İPTAL)",
+    metric: "Aşı Takip Başarısı %100",
+  },
+  coaching: {
+    title: "VipAkademi Özel Ders",
+    badge: "Disiplinli & Akademik Dil",
+    sms: "🎓 Sayın Velimiz, Can'ın YKS Matematik özel dersi yarın 16:00'dadır. Eğitmenimiz hazır. Onaylıyor musunuz? (EVET/HAYIR)",
+    metric: "Ders Saati Kaybı 0",
+  },
+  legal: {
+    title: "Yılmaz & Partners Hukuk Bürosu",
+    badge: "Resmi & Hukuki Dil",
+    sms: "⚖️ Sayın Mehmet Yılmaz, duruşma ve hukuki danışmanlık randevunuz yarın 11:00'dedir. Avukatınız hazır. (EVET/İPTAL)",
+    metric: "Duruşma Çakışması %0",
+  },
+  photo: {
+    title: "Studio Flash Fotoğrafçılık",
+    badge: "Kreatif & İlham Verici Dil",
+    sms: "📸 Selam Zeynep! Plato A ve ışık ekibiniz yarın 13:00 çekimi için hazır. Kreatif çekiminize onay verin. (EVET/İPTAL)",
+    metric: "Plato Kullanım Verimi %95",
+  },
+  coworking: {
+    title: "HubSpace Coworking & Plaza",
+    badge: "Profesyonel & İş Odaklı Dil",
+    sms: "🏢 Sayın Burak Bey, VIP Toplantı Odası (8 Kişilik) rezervasyonunuz yarın 10:00'dadır. Sunum ekipmanları hazır. (EVET/İPTAL)",
+    metric: "Oda Kiralama Verimi %97",
+  },
+  restoran: {
+    title: "Venedik Bistro & Restoran",
+    badge: "Lezzetli & Misafirperver Dil",
+    sms: "🍽️ Sayın Caner Bey, 4 kişilik bahçe masa rezervasyonunuz yarın 20:00 için ayrılmıştır. Şefimiz sizi bekliyor! (EVET/İPTAL)",
+    metric: "Masa Boş Kalma Oranı %0",
   },
 };
 
