@@ -105,7 +105,16 @@ CREATE TABLE IF NOT EXISTS services (
     currency VARCHAR(10) NOT NULL DEFAULT 'TRY',
     description TEXT,
     is_active TINYINT(1) DEFAULT 1,
+    required_resources_json TEXT,
+    sub_tasks_json TEXT,
+    buffer_before_minutes INT NOT NULL DEFAULT 0,
+    buffer_after_minutes INT NOT NULL DEFAULT 0,
+    max_capacity INT NOT NULL DEFAULT 1,
+    prerequisites_json TEXT,
+    deposit_required TINYINT(1) NOT NULL DEFAULT 0,
+    deposit_amount DECIMAL(10, 2) DEFAULT 0.00,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
     INDEX idx_services_tenant (tenant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

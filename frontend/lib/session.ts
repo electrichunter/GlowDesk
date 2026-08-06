@@ -25,6 +25,22 @@ export interface SessionPayload {
 const SESSION_COOKIE = "gd_session";
 const SESSION_DURATION_HOURS = 24;
 
+function utf8ToBase64(str: string): string {
+  try {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
+  } catch {
+    return btoa(str);
+  }
+}
+
+function base64ToUtf8(str: string): string {
+  try {
+    return decodeURIComponent(atob(str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+  } catch {
+    return atob(str);
+  }
+}
+
 // ── Token Üretimi ──────────────────────────────────────────────────────────────
 export function createSession(data: Omit<SessionPayload, "exp" | "iat">): string {
   const now = Math.floor(Date.now() / 1000);
@@ -34,7 +50,7 @@ export function createSession(data: Omit<SessionPayload, "exp" | "iat">): string
     exp: now + SESSION_DURATION_HOURS * 60 * 60,
   };
 
-  return btoa(JSON.stringify(payload));
+  return utf8ToBase64(JSON.stringify(payload));
 }
 
 // ── Token Çözümü ──────────────────────────────────────────────────────────────
@@ -47,9 +63,9 @@ export function parseSession(token: string): SessionPayload | null {
       while (payloadBase64.length % 4 !== 0) {
         payloadBase64 += '=';
       }
-      raw = atob(payloadBase64);
+      raw = base64ToUtf8(payloadBase64);
     } else {
-      raw = atob(token);
+      raw = base64ToUtf8(token);
     }
 
     const payload = JSON.parse(raw) as SessionPayload;
