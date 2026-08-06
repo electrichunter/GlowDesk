@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ExitIntentModal from "@/components/modals/ExitIntentModal";
 import LiveChatWidget from "@/components/marketing/LiveChatWidget";
+import Interactive3DScrollFlow from "@/components/marketing/Interactive3DScrollFlow";
 
 // ─── SEKTÖRLER (12 Sektör) ──────────────────────────────────────────────────────
 const SECTORS = [
@@ -275,6 +276,11 @@ export default function Home() {
         </div>
 
       </section>
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          1.5. 3D RANDEVUDAN KASAYA AKIŞ (Scroll Pinning & 3D Perspective Cards)
+      ────────────────────────────────────────────────────────────────────────── */}
+      <Interactive3DScrollFlow />
 
       {/* ──────────────────────────────────────────────────────────────────────────
           2. SEKTÖREL ŞABLON HİZMETLERİ (Interactive Sector Tabs)
