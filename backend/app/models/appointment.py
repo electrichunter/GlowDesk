@@ -12,7 +12,7 @@ class Appointment(Base):
     __tablename__ = "appointments"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     customer_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     staff_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     service_id = Column(String(36), ForeignKey("services.id", ondelete="SET NULL"), nullable=True)

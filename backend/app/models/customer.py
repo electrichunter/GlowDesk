@@ -8,7 +8,7 @@ class Customer(Base):
     __tablename__ = "customers"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id = Column(String(36), nullable=False, default="global")
+    tenant_id = Column(String(64), nullable=False, default="global")
     profile_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     full_name = Column(String(255), nullable=False)
     phone = Column(String(50), nullable=True)

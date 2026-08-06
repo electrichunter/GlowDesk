@@ -12,7 +12,7 @@ class FinancialEntry(Base):
     __tablename__ = "financial_entries"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
 
     type = Column(String(20), nullable=False, default="income") # 'income' (Gelir) or 'expense' (Gider)
     category = Column(String(100), nullable=False, default="Diğer") # Kira, Maaş, Fatura, Malzeme, Müşteri Ödemesi, Danışmanlık vb.
