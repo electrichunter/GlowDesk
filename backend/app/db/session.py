@@ -10,8 +10,14 @@ engine = create_engine(
     max_overflow=20
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+class CustomBase:
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4',
+        'mysql_collate': 'utf8mb4_unicode_ci',
+    }
+
+Base = declarative_base(cls=CustomBase)
 
 def get_db():
     db = SessionLocal()

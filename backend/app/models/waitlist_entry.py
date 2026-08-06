@@ -69,3 +69,10 @@ class WaitlistEntry(Base):
     # İlişkiler
     tenant = relationship("Tenant", back_populates="waitlist_entries")
     customer = relationship("Customer")
+
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4',
+        'mysql_collate': 'utf8mb4_unicode_ci',
+    }
+

@@ -32,3 +32,10 @@ class LegalMatter(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     hearings = relationship("CourtHearing", back_populates="matter", cascade="all, delete-orphan")
+
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4',
+        'mysql_collate': 'utf8mb4_unicode_ci',
+    }
+

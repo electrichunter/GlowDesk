@@ -53,6 +53,12 @@ class Package(Base):
         cascade="all, delete-orphan",
     )
 
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4',
+        'mysql_collate': 'utf8mb4_unicode_ci',
+    }
+
 
 class CustomerPackage(Base):
     """Müşterinin satın aldığı bireysel paket kaydı."""
@@ -94,6 +100,12 @@ class CustomerPackage(Base):
         cascade="all, delete-orphan",
     )
 
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4',
+        'mysql_collate': 'utf8mb4_unicode_ci',
+    }
+
 
 class PackageLedger(Base):
     """
@@ -128,3 +140,10 @@ class PackageLedger(Base):
 
     # İlişkiler
     customer_package = relationship("CustomerPackage", back_populates="ledger_entries")
+
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4',
+        'mysql_collate': 'utf8mb4_unicode_ci',
+    }
+

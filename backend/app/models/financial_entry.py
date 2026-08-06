@@ -22,3 +22,10 @@ class FinancialEntry(Base):
     entry_date = Column(Date, nullable=False, default=date.today)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4',
+        'mysql_collate': 'utf8mb4_unicode_ci',
+    }
+
