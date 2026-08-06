@@ -28,7 +28,7 @@ class Resource(Base):
         default=lambda: str(uuid.uuid4()),
     )
     tenant_id = Column(
-        String(36),
+        String(64),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False, index=True,
     )
