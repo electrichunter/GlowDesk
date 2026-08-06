@@ -42,7 +42,11 @@ CREATE TABLE IF NOT EXISTS tenants (
     subscription_tier VARCHAR(50) NOT NULL DEFAULT 'pro', -- starter | pro | enterprise
     free_until DATE,
     status VARCHAR(50) NOT NULL DEFAULT 'active',        -- active | suspended | onboarding
+    is_active TINYINT(1) DEFAULT 1,
     settings JSON,
+    settings_json TEXT,
+    timezone VARCHAR(50) NOT NULL DEFAULT 'Europe/Istanbul',
+    locale VARCHAR(10) NOT NULL DEFAULT 'tr_TR',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_tenants_slug (slug),
