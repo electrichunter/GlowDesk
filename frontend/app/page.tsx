@@ -3,11 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ExitIntentModal from "@/components/modals/ExitIntentModal";
 import LiveChatWidget from "@/components/marketing/LiveChatWidget";
-import Interactive3DScrollFlow from "@/components/marketing/Interactive3DScrollFlow";
+
+const Interactive3DScrollFlow = dynamic(
+  () => import("@/components/marketing/Interactive3DScrollFlow"),
+  { ssr: false }
+);
 
 // ─── SEKTÖRLER (12 Sektör) ──────────────────────────────────────────────────────
 const SECTORS = [
