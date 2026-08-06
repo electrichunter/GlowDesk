@@ -7,6 +7,63 @@ from app.db.seeder import seed_tenant_demo_data
 
 router = APIRouter(prefix="/tenants", tags=["Tenants"])
 
+@router.get("/public")
+def list_public_tenants(
+    sector: Optional[str] = None,
+    city: Optional[str] = None,
+    query: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    q = db.query(Tenant).filter(Tenant.status == "active")
+    
+    if sector and sector != "all":
+        q = q.filter(Tenant.sector == sector)
+    if city and city != "all":
+        q = q.filter(Tenant.city == city)
+    if query:
+        q = q.filter(Tenant.name.ilike(f"%{query}%"))
+
+    tenants = q.order_by(Tenant.created_at.desc()).all()
+    return [
+        {
+            "id": t.id,
+            "name": t.name,
+            "slug": t.slug,
+            "sector": t.sector or "beauty",
+            "phone": t.phone,
+            "address": t.address,
+            "city": t.city or "İstanbul",
+            "district": t.district or "Merkez",
+            "rating": 4.9,
+            "review_count": 12,
+            "image": None,
+        }
+        for t in tenants
+    ]
+
+@router.get("/public/by-slug/{slug}")
+def get_public_tenant_by_slug(slug: str, db: Session = Depends(get_db)):
+    tenant = db.query(Tenant).filter(Tenant.slug == slug, Tenant.status == "active").first()
+    if not tenant:
+        # Fallback search by ID if slug not found
+        tenant = db.query(Tenant).filter(Tenant.id == slug, Tenant.status == "active").first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="İşletme bulunamadı.")
+
+    return {
+        "id": tenant.id,
+        "name": tenant.name,
+        "slug": tenant.slug,
+        "sector": tenant.sector or "beauty",
+        "phone": tenant.phone,
+        "address": tenant.address or f"{tenant.district or ''}, {tenant.city or 'İstanbul'}",
+        "city": tenant.city or "İstanbul",
+        "district": tenant.district or "Merkez",
+        "staff_count": tenant.staff_count,
+        "workstation_count": tenant.workstation_count,
+        "rating": 4.9,
+    }
+
 @router.get("")
 def list_tenants(db: Session = Depends(get_db)):
     tenants = db.query(Tenant).filter(Tenant.status == "active").order_by(Tenant.created_at.desc()).all()

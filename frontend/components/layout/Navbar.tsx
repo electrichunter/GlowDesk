@@ -276,10 +276,10 @@ export default function Navbar() {
             </Link>
 
             <Link
-              href="/book/demo-salon"
+              href="/explore"
               className="px-3.5 py-1.5 rounded-full bg-blue-50 text-[#0066FF] border border-blue-200 hover:bg-[#0066FF] hover:text-white font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 scale-102"
             >
-              <span>📅 Randevu Al</span>
+              <span>📅 Randevu Al / Keşfet</span>
             </Link>
           </div>
 
@@ -440,11 +440,11 @@ export default function Navbar() {
                 <span className="text-slate-400">→</span>
               </Link>
               <Link
-                href="/book/demo-salon"
+                href="/explore"
                 onClick={() => setMenuOpen(false)}
                 className="flex items-center justify-between p-3 rounded-2xl bg-blue-50/80 border border-blue-200 text-sm font-extrabold text-[#0066FF] active:scale-[0.99] transition-all"
               >
-                <span>📅 Online Randevu Al</span>
+                <span>📅 İşletmeleri Keşfet &amp; Randevu Al</span>
                 <span>→</span>
               </Link>
             </div>

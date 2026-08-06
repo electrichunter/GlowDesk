@@ -29,6 +29,10 @@ class ServiceResponse(BaseModel):
     class Config:
         from_attributes = True
 
+@router.get("/public/{tenant_id}", response_model=List[ServiceResponse])
+def list_public_services_by_tenant(tenant_id: str, db: Session = Depends(get_db)):
+    return db.query(Service).filter(Service.tenant_id == tenant_id, Service.is_active == True).all()
+
 @router.get("", response_model=List[ServiceResponse])
 def list_services(tenant_id: Optional[str] = None, db: Session = Depends(get_db)):
     query = db.query(Service).filter(Service.is_active == True)

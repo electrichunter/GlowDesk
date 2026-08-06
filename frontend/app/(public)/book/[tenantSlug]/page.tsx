@@ -54,26 +54,42 @@ export default function SelfBookingPage() {
     const fetchTenantAndServices = async () => {
       try {
         const { apiRequest } = await import("@/lib/api-client");
-        const { data: dbSvcs } = await apiRequest<any[]>("/services");
-        if (dbSvcs && Array.isArray(dbSvcs) && dbSvcs.length > 0) {
-          setServices(
-            dbSvcs.map((s) => ({
-              id: s.id,
-              tenant_id: s.tenant_id || "global",
-              name: s.name,
-              price: parseFloat(s.price || 0),
-              duration_minutes: s.duration_minutes || 30,
-              created_at: s.created_at || new Date().toISOString(),
-            }))
-          );
-        } else {
-          // Fallback services
-          setServices([
-            { id: "s1", tenant_id: "demo", name: "Saç Kesim & Sakal Tasarım", duration_minutes: 45, price: 450, created_at: "" },
-            { id: "s2", tenant_id: "demo", name: "VIP Cilt Bakımı & Kolajen", duration_minutes: 60, price: 1200, created_at: "" },
-            { id: "s3", tenant_id: "demo", name: "Detoks & Aromaterapi Masajı", duration_minutes: 60, price: 950, created_at: "" },
-            { id: "s4", tenant_id: "demo", name: "Manikür & Pedikür SPA", duration_minutes: 45, price: 600, created_at: "" },
-          ]);
+        
+        // 1. Fetch Tenant info by slug
+        const { data: tenantData } = await apiRequest<any>(`/tenants/public/by-slug/${tenantSlug}`);
+        if (tenantData) {
+          setTenant({
+            id: tenantData.id,
+            name: tenantData.name,
+            slug: tenantData.slug,
+            sector: tenantData.sector,
+            settings: {
+              address: tenantData.address || `${tenantData.district || 'Merkez'}, ${tenantData.city || 'İstanbul'}`,
+              phone: tenantData.phone || "+90 (555) 000 0000",
+              rating: tenantData.rating || 4.9,
+            },
+          });
+
+          // 2. Fetch Tenant's Services
+          const { data: dbSvcs } = await apiRequest<any[]>(`/services/public/${tenantData.id}`);
+          if (dbSvcs && Array.isArray(dbSvcs) && dbSvcs.length > 0) {
+            setServices(
+              dbSvcs.map((s) => ({
+                id: s.id,
+                tenant_id: s.tenant_id,
+                name: s.name,
+                price: parseFloat(s.price || 0),
+                duration_minutes: s.duration_minutes || 30,
+                created_at: s.created_at || new Date().toISOString(),
+              }))
+            );
+          } else {
+            // Fallback default services for demo tenant
+            setServices([
+              { id: "s1", tenant_id: tenantData.id, name: "Standart Randevu & Seans", duration_minutes: 30, price: 500, created_at: "" },
+              { id: "s2", tenant_id: tenantData.id, name: "VIP Danışmanlık & Hizmet", duration_minutes: 60, price: 1000, created_at: "" },
+            ]);
+          }
         }
       } catch (err) {
         console.error("Booking data fetch error:", err);
@@ -94,7 +110,8 @@ export default function SelfBookingPage() {
       await apiRequest<any>("/appointments/", {
         method: "POST",
         body: JSON.stringify({
-          tenant_id: tenantSlug,
+          tenant_id: tenant.id || tenantSlug,
+          service_id: selectedService?.id,
           customer_name: fullName,
           customer_phone: phone,
           appointment_date: selectedDate,
