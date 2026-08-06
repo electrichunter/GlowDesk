@@ -11,7 +11,7 @@ from app.db.session import engine, Base
 from app.api import auth, appointments, storage, tenants, users, staff, invoices, customers, services, blog, roles
 from app.api.v1 import (
     health, waitlist, notifications, chat, payments,
-    resources, packages, commissions, dashboard, legal, finance,
+    resources, packages, dashboard, legal, finance,
 )
 import app.models  # Register all models with Base
 
@@ -61,7 +61,7 @@ routers = [
     users.router, roles.router, staff.router, invoices.router,
     customers.router, services.router, blog.router, health.router,
     waitlist.router, notifications.router, chat.router, payments.router,
-    resources.router, packages.router, commissions.router, dashboard.router, legal.router, finance.router
+    resources.router, packages.router, dashboard.router, legal.router, finance.router
 ]
 
 for router in routers:
