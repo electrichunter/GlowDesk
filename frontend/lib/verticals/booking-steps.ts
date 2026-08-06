@@ -34,9 +34,6 @@ const standardSteps: BookingStep[] = [
 ];
 
 export const VERTICAL_BOOKING_STEPS: Record<VerticalKey, BookingStep[]> = {
-<<<<<<< HEAD
-  salon: standardSteps,
-=======
   salon: [
     {
       id: 'service-staff',
@@ -61,7 +58,6 @@ export const VERTICAL_BOOKING_STEPS: Record<VerticalKey, BookingStep[]> = {
   ],
 
   barber: standardSteps,
->>>>>>> ozellik-test
   clinic: standardSteps,
   auto: standardSteps,
   fitness: standardSteps,

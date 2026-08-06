@@ -10,12 +10,8 @@ from app.middleware.rate_limiter import limiter
 from app.db.session import engine, Base
 from app.api import auth, appointments, storage, tenants, users, staff, invoices, customers, services, blog, roles
 from app.api.v1 import (
-<<<<<<< HEAD
-    resources, packages, dashboard, legal, finance,
-=======
     health, waitlist, notifications, chat, payments,
     resources, packages, commissions, dashboard, legal, finance,
->>>>>>> ozellik-test
 )
 import app.models  # Register all models with Base
 
@@ -65,15 +61,7 @@ routers = [
     users.router, roles.router, staff.router, invoices.router,
     customers.router, services.router, blog.router, health.router,
     waitlist.router, notifications.router, chat.router, payments.router,
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-    resources.router, packages.router, commissions.router, dashboard.router
-=======
-    resources.router, packages.router, dashboard.router, legal.router, finance.router
->>>>>>> Stashed changes
-=======
     resources.router, packages.router, commissions.router, dashboard.router, legal.router, finance.router
->>>>>>> ozellik-test
 ]
 
 for router in routers:

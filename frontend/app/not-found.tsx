@@ -53,15 +53,12 @@ export default function NotFoundPage() {
               <span>🏠</span> <span>Ana Sayfaya Dön</span>
             </Link>
 
-<<<<<<< HEAD
-=======
             <Link
               href="/explore"
               className="px-6 py-3.5 bg-slate-900/90 hover:bg-slate-800 text-slate-300 font-bold text-sm rounded-2xl border border-slate-800 transition-all hover:scale-105 flex items-center gap-2"
             >
               <span>🔍</span> <span>Sektörleri Keşfet</span>
             </Link>
->>>>>>> ozellik-test
           </div>
 
           {/* Yardım Kartı */}
