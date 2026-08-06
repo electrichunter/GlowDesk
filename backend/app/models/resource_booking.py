@@ -64,4 +64,9 @@ class ResourceBooking(Base):
             "resource_id", "start_time", "end_time",
             name="uq_resource_time_slot",
         ),
+        {
+            'mysql_engine': 'InnoDB',
+            'mysql_charset': 'utf8mb4',
+            'mysql_collate': 'utf8mb4_unicode_ci',
+        },
     )

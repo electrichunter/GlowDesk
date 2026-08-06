@@ -71,3 +71,10 @@ class Resource(Base):
         "ResourceBooking", back_populates="resource",
         cascade="all, delete-orphan",
     )
+
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4',
+        'mysql_collate': 'utf8mb4_unicode_ci',
+    }
+
