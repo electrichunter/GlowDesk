@@ -13,7 +13,7 @@ class CourtHearing(Base):
     __tablename__ = "court_hearings"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     matter_id = Column(String(36), ForeignKey("legal_matters.id", ondelete="CASCADE"), nullable=True)
 
     hearing_date = Column(Date, nullable=False)

@@ -29,7 +29,7 @@ class Package(Base):
         default=lambda: str(uuid.uuid4()),
     )
     tenant_id = Column(
-        String(64),
+        String(36),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False, index=True,
     )
@@ -73,7 +73,7 @@ class CustomerPackage(Base):
         nullable=True,
     )
     tenant_id = Column(
-        String(64),
+        String(36),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False, index=True,
     )

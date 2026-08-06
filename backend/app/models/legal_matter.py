@@ -13,7 +13,7 @@ class LegalMatter(Base):
     __tablename__ = "legal_matters"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     
     client_name = Column(String(255), nullable=False)
     client_phone = Column(String(50), nullable=True)
