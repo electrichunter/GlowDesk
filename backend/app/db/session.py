@@ -10,6 +10,8 @@ engine = create_engine(
     max_overflow=20
 )
 
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 class CustomBase:
     __table_args__ = {
         'mysql_engine': 'InnoDB',
