@@ -151,7 +151,7 @@ export interface Service {
   is_active?: boolean;
 }
 
-export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+export type AppointmentStatus = 'pending' | 'scheduled' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
 
 export interface Appointment {
   id: string;

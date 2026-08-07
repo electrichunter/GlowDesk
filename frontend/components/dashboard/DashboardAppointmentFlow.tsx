@@ -23,6 +23,7 @@ export default function DashboardAppointmentFlow({
   
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [dateScope, setDateScope] = useState<"selected" | "upcoming" | "past" | "all">("selected");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "confirmed" | "completed" | "no_show" | "cancelled">("all");
   const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -48,18 +49,27 @@ export default function DashboardAppointmentFlow({
     let selectedDayCount = 0;
     let upcomingCount = 0;
     let pastCount = 0;
+    let pendingCount = 0;
+    let confirmedCount = 0;
+    let completedCount = 0;
 
     appointments.forEach((a) => {
       const d = a.start_time ? a.start_time.split("T")[0] : todayStr;
       if (d === selectedDate) selectedDayCount++;
       if (d >= todayStr) upcomingCount++;
       if (d < todayStr) pastCount++;
+      if (a.status === "pending" || a.status === "scheduled") pendingCount++;
+      if (a.status === "confirmed") confirmedCount++;
+      if (a.status === "completed") completedCount++;
     });
 
     return {
       selected: selectedDayCount,
       upcoming: upcomingCount,
       past: pastCount,
+      pending: pendingCount,
+      confirmed: confirmedCount,
+      completed: completedCount,
       total: appointments.length,
     };
   }, [appointments, selectedDate, todayStr]);
@@ -79,7 +89,15 @@ export default function DashboardAppointmentFlow({
         matchesScope = aptDate < todayStr;
       }
 
-      // 2. İsim & Telefon Araması
+      // 2. Durum Filtresi (scheduled & pending Bekliyor olarak eşleşir)
+      let matchesStatus = true;
+      if (statusFilter === "pending") {
+        matchesStatus = a.status === "pending" || a.status === "scheduled";
+      } else if (statusFilter !== "all") {
+        matchesStatus = a.status === statusFilter;
+      }
+
+      // 3. İsim & Telefon Araması
       let matchesSearch = true;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -89,9 +107,9 @@ export default function DashboardAppointmentFlow({
         matchesSearch = cName.includes(q) || cPhone.includes(q) || sName.includes(q);
       }
 
-      return matchesScope && matchesSearch;
+      return matchesScope && matchesStatus && matchesSearch;
     });
-  }, [appointments, selectedDate, dateScope, searchQuery, todayStr]);
+  }, [appointments, selectedDate, dateScope, statusFilter, searchQuery, todayStr]);
 
   // Sayfalama (DOM kasmaması için 10'ar adet gösterim)
   const paginatedAppointments = useMemo(() => {
@@ -288,6 +306,35 @@ export default function DashboardAppointmentFlow({
             className="w-full bg-white border border-slate-300 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-800 shadow-2xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </div>
+      </div>
+
+      {/* ── DURUM FİLTRELEME BUTONLARI (Bekliyor / Onaylandı / Tamamlandı / No-Show) ── */}
+      <div className="flex items-center gap-1.5 flex-wrap pt-1">
+        <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase tracking-wider">Durum:</span>
+        {[
+          { key: "all", label: `Tümü (${appointments.length})` },
+          { key: "pending", label: `⏳ Bekliyor / Yeni (${counts.pending})` },
+          { key: "confirmed", label: `● Onaylandı (${counts.confirmed})` },
+          { key: "completed", label: `✅ Tamamlandı (${counts.completed})` },
+          { key: "no_show", label: `⚠️ No-Show` },
+          { key: "cancelled", label: `❌ İptal` },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => {
+              setStatusFilter(tab.key as any);
+              setCurrentPage(1);
+            }}
+            className={`px-3 py-1 text-xs font-extrabold rounded-xl transition-all border ${
+              statusFilter === tab.key
+                ? "bg-[#1E1B4B] text-white border-[#1E1B4B] shadow-xs"
+                : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* ── RANDEVULAR GÖSTERİMİ (LISTE vs SAATLİK TAKVİM) ── */}

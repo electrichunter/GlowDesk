@@ -15,15 +15,16 @@ export default function AppointmentCard({ appointment, onUpdateStatus }: Appoint
       case "confirmed":
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">● Onaylandı</span>;
       case "pending":
-        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200">⏳ Beklemede</span>;
+      case "scheduled":
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">⏳ Bekliyor / Yeni</span>;
       case "completed":
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-[#0066FF] border border-blue-200">✅ Tamamlandı</span>;
       case "no_show":
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">⚠️ No-Show (Gelmedi)</span>;
       case "cancelled":
-        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200">❌ İptal</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200">❌ İptal Edildi</span>;
       default:
-        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">{status}</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">⏳ {status}</span>;
     }
   };
 
@@ -59,20 +60,22 @@ export default function AppointmentCard({ appointment, onUpdateStatus }: Appoint
         </div>
       </div>
 
-      {/* Aksiyon Butonları */}
-      {appointment.status === "pending" && onUpdateStatus && (
+      {/* Aksiyon Butonları (Bekliyor / Scheduled Durumlarında Onayla & Reddet) */}
+      {(appointment.status === "pending" || appointment.status === "scheduled") && onUpdateStatus && (
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
+            type="button"
             onClick={() => onUpdateStatus(appointment.id, "cancelled")}
-            className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+            className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border border-rose-200 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors"
           >
-            Reddet
+            Reddet ❌
           </button>
           <button
+            type="button"
             onClick={() => onUpdateStatus(appointment.id, "confirmed")}
-            className="flex-1 sm:flex-initial btn-primary-blue text-xs py-2 px-4"
+            className="flex-1 sm:flex-initial btn-primary-blue text-xs py-2 px-4 shadow-sm font-extrabold"
           >
-            Onayla ✓
+            Randevuyu Onayla ✓
           </button>
         </div>
       )}
@@ -80,12 +83,14 @@ export default function AppointmentCard({ appointment, onUpdateStatus }: Appoint
       {appointment.status === "confirmed" && onUpdateStatus && (
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
+            type="button"
             onClick={() => onUpdateStatus(appointment.id, "no_show")}
             className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800 hover:bg-amber-100 transition-colors"
           >
             No-Show (Gelmedi)
           </button>
           <button
+            type="button"
             onClick={() => onUpdateStatus(appointment.id, "completed")}
             className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors shadow-2xs"
           >

@@ -156,15 +156,19 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const handleUpdateStatus = (id: string, newStatus: Appointment["status"]) => {
+  const handleUpdateStatus = async (id: string, newStatus: Appointment["status"]) => {
     const updated = appointments.map((apt) =>
       apt.id === id ? { ...apt, status: newStatus } : apt
     );
     setAppointments(updated);
     try {
       localStorage.setItem("glowdesk_appointments", JSON.stringify(updated));
-    } catch {
-      // storage fallback
+      const { apiRequest } = await import("@/lib/api-client");
+      await apiRequest(`/appointments/${id}/status?status=${newStatus}`, {
+        method: "PATCH",
+      });
+    } catch (err) {
+      console.error("Status update error:", err);
     }
   };
 

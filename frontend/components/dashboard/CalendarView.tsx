@@ -31,6 +31,7 @@ const SECTOR_DEFAULT_WORKSTATIONS: Record<string, string[]> = {
 const STATUS_COLORS: Record<AppointmentStatus, { bg: string; border: string; text: string; label: string }> = {
   confirmed: { bg: "bg-emerald-50 hover:bg-emerald-100", border: "border-emerald-400", text: "text-emerald-800", label: "Onaylandı" },
   pending: { bg: "bg-amber-50 hover:bg-amber-100", border: "border-amber-400", text: "text-amber-800", label: "Bekliyor" },
+  scheduled: { bg: "bg-amber-50 hover:bg-amber-100", border: "border-amber-400", text: "text-amber-800", label: "Bekliyor / Yeni" },
   completed: { bg: "bg-cyan-50 hover:bg-cyan-100", border: "border-cyan-400", text: "text-cyan-800", label: "Tamamlandı" },
   no_show: { bg: "bg-rose-50 hover:bg-rose-100", border: "border-rose-400", text: "text-rose-800", label: "No-Show" },
   cancelled: { bg: "bg-slate-100 hover:bg-slate-200", border: "border-slate-300", text: "text-slate-600", label: "İptal" },
