@@ -1,0 +1,202 @@
+{
+  "timestamp": "2026-08-07T17:58:26.364Z",
+  "duration_ms": 0,
+  "total": 32,
+  "passed": 32,
+  "failed": 0,
+  "success_rate": "100.0%",
+  "tests": [
+    {
+      "suite": "Services & Navigation",
+      "title": "Hizmet Rota Yapısı Doğrulaması: /hizmetler/no-show-engelleyici",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Services & Navigation",
+      "title": "Hizmet Rota Yapısı Doğrulaması: /hizmetler/whatsapp-otomasyonu",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Services & Navigation",
+      "title": "Hizmet Rota Yapısı Doğrulaması: /hizmetler/bekleme-listesi-motoru",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Services & Navigation",
+      "title": "Navbar Dropdown Bağlantı Hedefi: ⚡ No-Show Engelleyici",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Services & Navigation",
+      "title": "Navbar Dropdown Bağlantı Hedefi: 💬 WhatsApp Otomasyonu",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Services & Navigation",
+      "title": "Navbar Dropdown Bağlantı Hedefi: 📋 Bekleme Listesi Motoru",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Services & Navigation",
+      "title": "Footer Hizmet Linki Hedefi: No-Show İptal Engelleyici",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Services & Navigation",
+      "title": "Footer Hizmet Linki Hedefi: WhatsApp Otomasyonu",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Services & Navigation",
+      "title": "Footer Hizmet Linki Hedefi: Otomatik Bekleme Listesi",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Blog Engine & Fallback Data",
+      "title": "Blog Fallback İçerik Adet Kontrolü (En Az 4 Makale)",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Blog Engine & Fallback Data",
+      "title": "Blog Makale Şema Doğruluğu #1: Güzellik Salonlarında No-Show ...",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Blog Engine & Fallback Data",
+      "title": "Blog Makale Şema Doğruluğu #2: WhatsApp Otomasyonu ile Müşter...",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Blog Engine & Fallback Data",
+      "title": "Blog Makale Şema Doğruluğu #3: 2026 Salon Yönetim Rehberi: Di...",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Blog Engine & Fallback Data",
+      "title": "Blog Makale Şema Doğruluğu #4: Akıllı Bekleme Listesi (Waitli...",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Blog Engine & Fallback Data",
+      "title": "Blog Slug Benzersizliği Kontrolü",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Blog Engine & Fallback Data",
+      "title": "Blog Kategorileri Ayrıştırma Kontrolü",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Telefon Otomatik Biçimlendirme (5551234567 -> 0555 123 45 67)",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Telefon Otomatik Biçimlendirme (05321112233 -> 0532 111 22 33)",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Telefon Otomatik Biçimlendirme (05449998877123 -> 0544 999 88 77)",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Telefon TR GSM Format Doğrulaması (\"0555 123 45 67\" -> \"0555 123 45 67\")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Telefon TR GSM Format Doğrulaması (\"0532 999 88 77\" -> \"0532 999 88 77\")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Telefon TR GSM Format Doğrulaması (\"0212 444 00 00\" -> \"0212 444 00 00\")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Telefon TR GSM Format Doğrulaması (\"12345\" -> \"1234 5\")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Telefon TR GSM Format Doğrulaması (\"abc5551234567\" -> \"0555 123 45 67\")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Ad Soyad Zorunluluk Doğrulaması (\"Ömer Faruk Uysal\")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Ad Soyad Zorunluluk Doğrulaması (\"Ayşe Yılmaz\")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Ad Soyad Zorunluluk Doğrulaması (\"Ahmet\")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Ad Soyad Zorunluluk Doğrulaması (\"  \")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Ad Soyad Zorunluluk Doğrulaması (\"A B\")",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Form Hazırlık & Gönderim Kilidi (\"Zeynep Çelik\" | 0536 444 55 66)",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Form Hazırlık & Gönderim Kilidi (\"Zeynep\" | 0536 444 55 66)",
+      "passed": true,
+      "detail": "Başarılı"
+    },
+    {
+      "suite": "Booking Form Validation",
+      "title": "Form Hazırlık & Gönderim Kilidi (\"Zeynep Çelik\" | 12345)",
+      "passed": true,
+      "detail": "Başarılı"
+    }
+  ]
+}

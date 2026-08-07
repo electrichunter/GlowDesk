@@ -83,26 +83,26 @@ export default function Interactive3DScrollFlow() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full min-h-[220vh] bg-slate-950 text-white border-y border-slate-800/80 overflow-clip"
+      className="relative w-full min-h-[220vh] bg-[#F8FAFC] text-slate-900 border-y border-slate-200/80 overflow-clip font-sans"
     >
       {/* Dynamic Background Glow Grid */}
       <div className="sticky top-0 h-screen w-full flex flex-col justify-between overflow-hidden py-4 sm:py-6">
         
         {/* Background Gradients */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,102,255,0.12),transparent_70%)] pointer-events-none" />
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,102,255,0.06),transparent_70%)] pointer-events-none" />
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* HEADER AREA */}
         <div className="relative z-20 px-4 text-center max-w-3xl mx-auto space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-800/60 text-blue-400 text-xs font-bold shadow-md">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#0066FF] text-xs font-extrabold shadow-2xs">
             <span>✨ 3D İnteraktif Akış</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0066FF] animate-ping" />
           </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight font-display">
-            Randevudan Kasaya <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">3D Otomasyon Akışı</span>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
+            Randevudan Kasaya <span className="bg-gradient-to-r from-[#0066FF] via-blue-600 to-indigo-600 bg-clip-text text-transparent">3D Otomasyon Akışı</span>
           </h2>
-          <p className="text-slate-400 text-xs max-w-lg mx-auto">
+          <p className="text-slate-600 text-xs max-w-lg mx-auto font-medium">
             Sayfayı aşağı kaydırdıkça randevunun 3D uzayda dönerek kaynak ataması ve kasa tahsilatına dönüşmesini izleyin.
           </p>
 
@@ -113,10 +113,10 @@ export default function Interactive3DScrollFlow() {
                 key={s.key}
                 type="button"
                 onClick={() => setSelectedSector(idx)}
-                className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-full text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
                   selectedSector === idx
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/30 scale-105"
-                    : "bg-slate-900/80 text-slate-400 hover:bg-slate-800 border border-slate-800"
+                    ? "bg-[#0066FF] text-white shadow-md shadow-blue-500/20 scale-105"
+                    : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
                 }`}
               >
                 <span>{s.icon}</span>
@@ -133,7 +133,7 @@ export default function Interactive3DScrollFlow() {
             
             {/* ── KART 0: CANLI DASHBOARD (0% - 25%) ── */}
             <div
-              className="absolute inset-0 rounded-3xl bg-slate-900/90 border border-blue-500/30 p-6 shadow-2xl backdrop-blur-xl transition-all duration-500 ease-out flex flex-col justify-between"
+              className="absolute inset-0 rounded-3xl bg-white border border-slate-200/90 p-6 shadow-layered backdrop-blur-xl transition-all duration-500 ease-out flex flex-col justify-between"
               style={{
                 transform: `
                   rotateX(${15 - scrollProgress * 40}deg)
@@ -141,49 +141,50 @@ export default function Interactive3DScrollFlow() {
                   translateZ(${activeStep === 0 ? 0 : -220}px)
                   translateY(${activeStep === 0 ? 0 : -40}px)
                 `,
-                opacity: activeStep === 0 ? 1 : 0.25,
+                opacity: activeStep === 0 ? 1 : 0.35,
                 filter: activeStep === 0 ? "none" : "blur(2px)",
               }}
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-600 text-white font-bold flex items-center justify-center text-base">
+                  <div className="w-9 h-9 rounded-xl bg-[#0066FF] text-white font-extrabold flex items-center justify-center text-base shadow-sm">
                     ⚡
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-sm text-white">GlowDesk Canlı Panel</h3>
-                    <p className="text-[11px] text-slate-400">Gerçek Zamanlı Doluluk Oranı</p>
+                    <h3 className="font-extrabold text-sm text-slate-900 font-display">GlowDesk Canlı Panel</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Gerçek Zamanlı Doluluk Oranı</p>
                   </div>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20 animate-pulse">
-                  ● Canlı Senkronize
+                <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  <span>Canlı Senkronize</span>
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-3 my-4">
-                <div className="bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400">Bugünkü Randevu</div>
-                  <div className="text-lg font-black text-white mt-1">28 Seans</div>
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">Bugünkü Randevu</div>
+                  <div className="text-lg font-extrabold text-slate-900 mt-1 font-display">28 Seans</div>
                 </div>
-                <div className="bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400">No-Show Engeli</div>
-                  <div className="text-lg font-black text-emerald-400 mt-1">%100</div>
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">No-Show Engeli</div>
+                  <div className="text-lg font-extrabold text-emerald-600 mt-1 font-display">%100</div>
                 </div>
-                <div className="bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400">Kurtarılan Gelir</div>
-                  <div className="text-lg font-black text-cyan-400 mt-1">₺14.500</div>
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">Kurtarılan Gelir</div>
+                  <div className="text-lg font-extrabold text-[#0066FF] mt-1 font-display">₺14.500</div>
                 </div>
               </div>
 
-              <div className="bg-blue-950/40 p-3 rounded-2xl border border-blue-800/40 flex items-center justify-between text-xs text-blue-300">
+              <div className="bg-blue-50/80 p-3 rounded-2xl border border-blue-200 flex items-center justify-between text-xs text-[#0066FF] font-bold">
                 <span>🔄 WhatsApp Teyit Motoru Beklemede</span>
-                <span className="font-bold text-white">Aktif 🔥</span>
+                <span className="bg-[#0066FF] text-white px-2.5 py-0.5 rounded-full text-[10px]">Aktif 🔥</span>
               </div>
             </div>
 
             {/* ── KART 1: RANDEVU & WHATSAPP TEYİT KARTI (25% - 55%) ── */}
             <div
-              className="absolute inset-0 rounded-3xl bg-slate-900/95 border border-cyan-500/40 p-6 shadow-2xl backdrop-blur-xl transition-all duration-500 ease-out flex flex-col justify-between"
+              className="absolute inset-0 rounded-3xl bg-white border border-blue-200/90 p-6 shadow-layered backdrop-blur-xl transition-all duration-500 ease-out flex flex-col justify-between"
               style={{
                 transform: `
                   rotateX(${activeStep === 1 ? 0 : 20}deg)
@@ -191,46 +192,46 @@ export default function Interactive3DScrollFlow() {
                   translateZ(${activeStep === 1 ? 60 : activeStep > 1 ? -180 : -300}px)
                   translateX(${activeStep === 1 ? 0 : activeStep > 1 ? -120 : 120}px)
                 `,
-                opacity: activeStep === 1 ? 1 : activeStep > 1 ? 0.3 : 0,
+                opacity: activeStep === 1 ? 1 : activeStep > 1 ? 0.35 : 0,
                 pointerEvents: activeStep === 1 ? "auto" : "none",
                 filter: activeStep === 1 ? "none" : "blur(3px)",
               }}
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2.5">
                   <span className="text-2xl">💬</span>
                   <div>
-                    <h3 className="font-bold text-sm text-white">Yeni Randevu Teyidi</h3>
-                    <p className="text-[11px] text-cyan-400 font-semibold">WhatsApp Otomatik Mesajı</p>
+                    <h3 className="font-extrabold text-sm text-slate-900 font-display">Yeni Randevu Teyidi</h3>
+                    <p className="text-[11px] text-[#0066FF] font-bold">WhatsApp Otomatik Mesajı</p>
                   </div>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[11px] font-bold border border-cyan-500/30">
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0066FF] text-[11px] font-extrabold border border-blue-200">
                   Adım 1 / 3
                 </span>
               </div>
 
-              <div className="bg-emerald-950/40 p-4 rounded-2xl border border-emerald-500/30 space-y-2 my-2">
+              <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-2 my-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-emerald-400">Müşteri: Elif Yılmaz</span>
-                  <span className="text-[10px] text-slate-400">Yarın 14:00</span>
+                  <span className="font-extrabold text-emerald-900">Müşteri: Elif Yılmaz</span>
+                  <span className="text-[10px] text-slate-500 font-bold">Yarın 14:00</span>
                 </div>
-                <div className="text-xs text-slate-200 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 font-mono">
+                <div className="text-xs text-slate-800 bg-white p-2.5 rounded-xl border border-emerald-200 font-mono shadow-2xs">
                   ✨ Selam Elif! Yarınki seansın için koltuğun ayrıldı. Geliyor musun? (EVET / HAYIR)
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 pt-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700 pt-1">
                   <span>✅ Müşteri Cevabı: "EVET Geliyorum"</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-between text-xs text-slate-600 pt-2 border-t border-slate-100 font-medium">
                 <span>Durum: Teyit Edildi</span>
-                <span className="text-cyan-400 font-bold">Kaynak Atamasına Geçiliyor →</span>
+                <span className="text-[#0066FF] font-extrabold">Kaynak Atamasına Geçiliyor →</span>
               </div>
             </div>
 
             {/* ── KART 2: FİZİKİ KAYNAK & UZMAN ATAMA KARTI (55% - 85%) ── */}
             <div
-              className="absolute inset-0 rounded-3xl bg-slate-900/95 border border-purple-500/40 p-6 shadow-2xl backdrop-blur-xl transition-all duration-500 ease-out flex flex-col justify-between"
+              className="absolute inset-0 rounded-3xl bg-white border border-purple-200/90 p-6 shadow-layered backdrop-blur-xl transition-all duration-500 ease-out flex flex-col justify-between"
               style={{
                 transform: `
                   rotateX(${activeStep === 2 ? 0 : -25}deg)
@@ -238,48 +239,48 @@ export default function Interactive3DScrollFlow() {
                   translateZ(${activeStep === 2 ? 100 : activeStep > 2 ? -150 : -350}px)
                   translateY(${activeStep === 2 ? 0 : 80}px)
                 `,
-                opacity: activeStep === 2 ? 1 : activeStep > 2 ? 0.3 : 0,
+                opacity: activeStep === 2 ? 1 : activeStep > 2 ? 0.35 : 0,
                 pointerEvents: activeStep === 2 ? "auto" : "none",
                 filter: activeStep === 2 ? "none" : "blur(3px)",
               }}
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2.5">
                   <span className="text-2xl">{resource.icon}</span>
                   <div>
-                    <h3 className="font-bold text-sm text-white">Fiziki Kaynak Atandı</h3>
-                    <p className="text-[11px] text-purple-400 font-semibold">{resource.name}</p>
+                    <h3 className="font-extrabold text-sm text-slate-900 font-display">Fiziki Kaynak Atandı</h3>
+                    <p className="text-[11px] text-purple-700 font-bold">{resource.name}</p>
                   </div>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[11px] font-bold border border-purple-500/30">
+                <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-800 text-[11px] font-extrabold border border-purple-200">
                   Adım 2 / 3
                 </span>
               </div>
 
-              <div className="bg-slate-950/90 p-4 rounded-2xl border border-purple-500/30 space-y-3 my-2">
+              <div className="bg-purple-50/50 p-4 rounded-2xl border border-purple-200 space-y-3 my-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-white">Atanan Alan:</span>
-                  <span className="text-xs font-bold text-purple-300 bg-purple-950/60 px-3 py-1 rounded-full border border-purple-800/50">
+                  <span className="text-xs font-extrabold text-slate-900">Atanan Alan:</span>
+                  <span className="text-xs font-bold text-purple-900 bg-white px-3 py-1 rounded-full border border-purple-200">
                     {resource.name}
                   </span>
                 </div>
-                <div className="text-xs text-slate-300">
-                  <span className="text-slate-400">Detay:</span> {resource.detail || resource.name}
+                <div className="text-xs text-slate-700 font-medium">
+                  <span className="text-slate-500 font-bold">Detay:</span> {resource.detail || resource.name}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-emerald-400 font-bold bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-800/40">
+                <div className="flex items-center gap-2 text-xs text-emerald-800 font-extrabold bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
                   <span>🔒 Çakışmasız Saat Kilitleme Başarılı</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-between text-xs text-slate-600 pt-2 border-t border-slate-100 font-medium">
                 <span>Kapasite Kilitlendi</span>
-                <span className="text-purple-400 font-bold">Kasa & Tahsilata Geçiliyor →</span>
+                <span className="text-purple-700 font-extrabold">Kasa & Tahsilata Geçiliyor →</span>
               </div>
             </div>
 
             {/* ── KART 3: ÖDEME & KASA BAŞARI KARTI (85% - 100%) ── */}
             <div
-              className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-950/95 via-slate-900/95 to-slate-950/95 border-2 border-emerald-500/60 p-6 shadow-[0_0_50px_rgba(16,185,129,0.3)] backdrop-blur-xl transition-all duration-500 ease-out flex flex-col justify-between"
+              className="absolute inset-0 rounded-3xl bg-white border-2 border-emerald-500/80 p-6 shadow-layered backdrop-blur-xl transition-all duration-500 ease-out flex flex-col justify-between"
               style={{
                 transform: `
                   rotateX(${activeStep === 3 ? 0 : 35}deg)
@@ -291,41 +292,41 @@ export default function Interactive3DScrollFlow() {
                 pointerEvents: activeStep === 3 ? "auto" : "none",
               }}
             >
-              <div className="flex items-center justify-between border-b border-emerald-800/60 pb-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-slate-950 font-black text-xl flex items-center justify-center shadow-lg shadow-emerald-500/40 animate-bounce">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-bounce">
                     ✓
                   </div>
                   <div>
-                    <h3 className="font-black text-base text-white">Kasaya İşlendi!</h3>
-                    <p className="text-[11px] text-emerald-400 font-bold">Randevudan Tahsilata Tamamlandı</p>
+                    <h3 className="font-black text-base text-slate-900 font-display">Kasaya İşlendi!</h3>
+                    <p className="text-[11px] text-emerald-700 font-extrabold">Randevudan Tahsilata Tamamlandı</p>
                   </div>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black border border-emerald-400/40">
+                <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-black border border-emerald-200">
                   Adım 3 / 3 🚀
                 </span>
               </div>
 
-              <div className="bg-slate-950/90 p-4 rounded-2xl border border-emerald-500/40 space-y-3 my-2 text-center">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3 my-2 text-center">
+                <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
                   Toplam Tahsil Edilen Tutar
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight">
+                <div className="text-3xl sm:text-4xl font-black text-emerald-600 tracking-tight font-mono">
                   ₺1.450,00
                 </div>
                 <div className="flex justify-center gap-2 pt-1 text-xs">
-                  <span className="px-3 py-1 rounded-full bg-blue-950 text-blue-300 font-bold border border-blue-800">
+                  <span className="px-3 py-1 rounded-full bg-blue-50 text-[#0066FF] font-bold border border-blue-200">
                     💳 iZico Online POS
                   </span>
-                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 font-bold border border-emerald-800">
+                  <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
                     ✅ No-Show %0
                   </span>
                 </div>
               </div>
 
-              <div className="bg-emerald-900/40 p-3 rounded-2xl border border-emerald-600/40 flex items-center justify-between text-xs text-emerald-200">
+              <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 flex items-center justify-between text-xs text-emerald-800 font-bold">
                 <span>🎉 Sıfır Müşteri Kaybı Başarısı</span>
-                <span className="font-extrabold text-white">Kasa Güncellendi 💰</span>
+                <span className="font-black text-emerald-700">Kasa Güncellendi 💰</span>
               </div>
             </div>
 
@@ -334,14 +335,14 @@ export default function Interactive3DScrollFlow() {
 
         {/* FOOTER STEP CONTROLS (Sticky Bar) */}
         <div className="relative z-20 pb-8 px-6 max-w-3xl mx-auto w-full">
-          <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4">
+          <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 p-4 rounded-2xl shadow-layered flex items-center justify-between gap-4">
             {STEPS.map((s, idx) => (
               <button
                 key={s.title}
                 type="button"
                 onClick={() => {
                   setActiveStep(idx as StepIndex);
-                  // Optionally scroll to position
+                  // Scroll to relative position
                   if (containerRef.current) {
                     const rect = containerRef.current.getBoundingClientRect();
                     const targetScroll = window.scrollY + rect.top + (idx / 3) * (rect.height - window.innerHeight);
@@ -350,15 +351,15 @@ export default function Interactive3DScrollFlow() {
                 }}
                 className={`flex-1 p-2.5 rounded-xl text-left transition-all cursor-pointer ${
                   activeStep === idx
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25 font-bold"
-                    : "bg-slate-950/60 text-slate-400 hover:bg-slate-800 hover:text-white"
+                    ? "bg-[#0066FF] text-white shadow-lg shadow-blue-500/20 font-bold"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200"
                 }`}
               >
                 <div className="flex items-center gap-1.5 text-xs font-extrabold">
                   <span>{s.icon}</span>
                   <span className="truncate">{s.title.split(":")[0]}</span>
                 </div>
-                <div className="text-[10px] opacity-80 truncate hidden sm:block mt-0.5">
+                <div className="text-[10px] opacity-90 truncate hidden sm:block mt-0.5 font-medium">
                   {s.badge}
                 </div>
               </button>

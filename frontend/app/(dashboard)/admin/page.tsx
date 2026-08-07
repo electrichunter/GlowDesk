@@ -81,7 +81,7 @@ export default function AdminDashboardPage() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [emergencyTickets, setEmergencyTickets] = useState<SupportTicket[]>([]);
 
-  const [activeTab, setActiveTab] = useState<"tenants" | "financials" | "templates" | "users" | "blog" | "audit" | "support">("tenants");
+  const [activeTab, setActiveTab] = useState<"tenants" | "financials" | "templates" | "users" | "blog" | "audit" | "support" | "calls">("support");
 
   const loadEmergencyTickets = useCallback(() => {
     try {
@@ -872,6 +872,7 @@ export default function AdminDashboardPage() {
       {/* Aktif Modül Başlığı */}
       <div className="flex justify-between items-center pb-2 border-b border-slate-200">
         <h2 className="text-sm font-extrabold text-[#1E1B4B] font-display uppercase tracking-wider">
+          {activeTab === "calls" && `📞 Biz Sizi Arayalım & Çağrı Talepleri (${emergencyTickets.length})`}
           {activeTab === "support" && `🚨 Acil Destek & Canlı Müşteri Talepleri (${emergencyTickets.length})`}
           {activeTab === "tenants" && `🏪 Kayıtlı Tüm İşletmeler (${tenants.length})`}
           {activeTab === "users" && `👥 Tüm Kullanıcıları Yönetme Paneli (${users.length})`}
@@ -884,6 +885,105 @@ export default function AdminDashboardPage() {
           👈 Sol Menüden Seçili Modül
         </span>
       </div>
+
+      {/* TAB: BİZ SİZİ ARAYALIM / ÇAĞRI TALEPLERİ */}
+      {activeTab === "calls" && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-center justify-between text-xs text-blue-900 font-bold shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl">📞</span>
+              <div>
+                <span className="font-extrabold block">"Biz Sizi Arayalım" & Satış Öncesi Çağrı Talepleri</span>
+                <span className="text-slate-500 text-[11px] font-normal">Canlı destek ve formlardan gelen potansiyel müşteri arama istekleri.</span>
+              </div>
+            </div>
+            <span className="bg-[#0066FF] text-white px-3.5 py-1 rounded-full text-xs font-black shadow-xs">
+              {emergencyTickets.filter(t => t.status !== "ÇÖZÜLDÜ").length} Bekleyen Arama Talebi
+            </span>
+          </div>
+
+          <div className="overflow-hidden border border-slate-200 rounded-2xl bg-white shadow-layered">
+            {emergencyTickets.length > 0 ? (
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#0F172A] text-white uppercase tracking-wider font-extrabold">
+                  <tr>
+                    <th className="p-4">Talep No</th>
+                    <th className="p-4">Tür</th>
+                    <th className="p-4">Telefon Numarası</th>
+                    <th className="p-4">Müşteri Notu / Talep</th>
+                    <th className="p-4">Zaman</th>
+                    <th className="p-4">Durum</th>
+                    <th className="p-4 text-right">Arama & İşlem</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
+                  {emergencyTickets.map((t) => (
+                    <tr key={t.id} className={t.status !== "ÇÖZÜLDÜ" ? "bg-amber-50/40 hover:bg-amber-100/50" : "hover:bg-slate-50"}>
+                      <td className="p-4 font-mono font-bold text-[#0066FF]">{t.id}</td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${t.type === "SATIŞ" ? "bg-blue-100 text-blue-800 border border-blue-200" : "bg-purple-100 text-purple-800 border border-purple-200"}`}>
+                          {t.type}
+                        </span>
+                      </td>
+                      <td className="p-4 font-mono font-extrabold text-slate-900 text-sm">
+                        <a href={`tel:${t.phone}`} className="hover:text-[#0066FF] hover:underline flex items-center gap-1">
+                          <span>📞</span>
+                          <span>{t.phone}</span>
+                        </a>
+                      </td>
+                      <td className="p-4 max-w-xs truncate text-slate-700">{t.note}</td>
+                      <td className="p-4 font-mono text-slate-500 text-[11px]">{t.createdAt}</td>
+                      <td className="p-4">
+                        {t.status === "ÇÖZÜLDÜ" ? (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            ✓ Arandı / Çözüldü
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">
+                            🔴 Aranacak
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right space-x-2">
+                        <a
+                          href={`tel:${t.phone}`}
+                          className="px-3 py-1.5 rounded-xl font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 transition-all text-[11px] inline-flex items-center gap-1 shadow-xs"
+                        >
+                          📞 Şimdi Ara
+                        </a>
+                        {t.status !== "ÇÖZÜLDÜ" && (
+                          <button
+                            type="button"
+                            onClick={() => handleResolveTicket(t.id)}
+                            className="px-3 py-1.5 rounded-xl font-extrabold text-slate-800 bg-slate-100 hover:bg-slate-200 transition-all text-[11px] border border-slate-300"
+                          >
+                            ✓ Arandı İşaretle
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTicket(t.id)}
+                          className="px-2.5 py-1.5 rounded-xl font-extrabold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all text-[11px] border border-rose-200"
+                        >
+                          Sil 🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="p-12 text-center space-y-3">
+                <div className="text-4xl">📞</div>
+                <h3 className="font-extrabold text-slate-900 text-sm">Henüz Bekleyen Arama Talebi Yok</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Siteden veya canlı destek asistanından "Biz Sizi Arayalım" formu dolduran müşteriler anında burada listelenir.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* TAB: ACİL DESTEK TALEPLERİ */}
       {activeTab === "support" && (

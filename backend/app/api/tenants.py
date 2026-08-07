@@ -50,18 +50,37 @@ def get_public_tenant_by_slug(slug: str, db: Session = Depends(get_db)):
     if not tenant:
         raise HTTPException(status_code=404, detail="İşletme bulunamadı.")
 
+    import json
+    settings = {}
+    if tenant.settings_json:
+        try:
+            settings = json.loads(tenant.settings_json)
+        except Exception:
+            pass
+
     return {
         "id": tenant.id,
         "name": tenant.name,
         "slug": tenant.slug,
         "sector": tenant.sector or "beauty",
         "phone": tenant.phone,
+        "email": tenant.email,
         "address": tenant.address or f"{tenant.district or ''}, {tenant.city or 'İstanbul'}",
         "city": tenant.city or "İstanbul",
         "district": tenant.district or "Merkez",
         "staff_count": tenant.staff_count,
         "workstation_count": tenant.workstation_count,
-        "rating": 4.9,
+        "rating": settings.get("rating", 4.9),
+        "review_count": settings.get("review_count", 28),
+        "description": settings.get("description") or f"{tenant.name} — Kaliteli ve hijyenik koşullarda profesyonel randevu hizmeti sunmaktadır.",
+        "logo_url": settings.get("logo_url") or "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=300&q=80",
+        "cover_image": settings.get("cover_image") or "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1400&q=80",
+        "gallery_images": settings.get("gallery_images") or [
+            "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80",
+        ],
     }
 
 @router.get("")
@@ -142,6 +161,20 @@ def update_tenant(tenant_id: str, payload: dict, db: Session = Depends(get_db)):
         tenant.sector = payload["sector"]
     if "subscription_tier" in payload and payload["subscription_tier"]:
         tenant.subscription_tier = payload["subscription_tier"]
+
+    import json
+    settings = {}
+    if tenant.settings_json:
+        try:
+            settings = json.loads(tenant.settings_json)
+        except Exception:
+            pass
+
+    for key in ["description", "logo_url", "cover_image", "gallery_images"]:
+        if key in payload:
+            settings[key] = payload[key]
+
+    tenant.settings_json = json.dumps(settings)
 
     db.commit()
     db.refresh(tenant)

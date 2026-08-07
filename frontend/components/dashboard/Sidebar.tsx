@@ -70,6 +70,7 @@ const SALON_MENU_ITEMS: MenuItem[] = [
 ];
 
 const ADMIN_MENU_ITEMS: MenuItem[] = [
+  { href: "/admin?tab=calls",     label: "📞 Biz Sizi Arayalım",        icon: <IconInbox />,    minRole: "admin", tabKey: "calls" },
   { href: "/admin?tab=tenants",   label: "🏪 Kayıtlı İşletmeler",        icon: <IconCrown />,    minRole: "admin", tabKey: "tenants" },
   { href: "/admin?tab=users",     label: "👥 Kullanıcı Yönetimi",       icon: <IconUsers />,    minRole: "admin", tabKey: "users" },
   { href: "/admin?tab=blog",      label: "📝 Blog Yönetimi (Tiptap)",   icon: <IconSparkles />, minRole: "admin", tabKey: "blog" },

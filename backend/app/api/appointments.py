@@ -10,10 +10,24 @@ router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
 @router.post("/", response_model=AppointmentResponse)
 def create_appointment(payload: AppointmentCreate, db: Session = Depends(get_db)):
+    valid_service_id = None
+    if payload.service_id:
+        from app.models.service import Service
+        svc = db.query(Service).filter(Service.id == payload.service_id).first()
+        if svc:
+            valid_service_id = svc.id
+
+    valid_staff_id = None
+    if payload.staff_id:
+        from app.models.user import User
+        stf = db.query(User).filter(User.id == payload.staff_id).first()
+        if stf:
+            valid_staff_id = stf.id
+
     appointment = Appointment(
         tenant_id=payload.tenant_id,
-        service_id=payload.service_id,
-        staff_id=payload.staff_id,
+        service_id=valid_service_id,
+        staff_id=valid_staff_id,
         customer_name=payload.customer_name,
         customer_phone=payload.customer_phone,
         appointment_date=payload.appointment_date,

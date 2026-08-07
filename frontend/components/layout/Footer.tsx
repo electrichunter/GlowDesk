@@ -30,8 +30,9 @@ export default function Footer() {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Hizmetler</h4>
             <ul className="space-y-2.5">
               {[
-                { href: "/#features", label: "No-Show İptal Engelleyici" },
-                { href: "/#features", label: "Otomatik Bekleme Listesi" },
+                { href: "/hizmetler/no-show-engelleyici", label: "No-Show İptal Engelleyici" },
+                { href: "/hizmetler/whatsapp-otomasyonu", label: "WhatsApp Otomasyonu" },
+                { href: "/hizmetler/bekleme-listesi-motoru", label: "Otomatik Bekleme Listesi" },
                 { href: "/#pricing", label: "Komisyonsuz Fiyatlandırma" },
                 { href: "/register", label: "1 Ay Ücretsiz Başla" },
               ].map((item) => (

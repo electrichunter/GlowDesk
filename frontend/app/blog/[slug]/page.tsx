@@ -10,14 +10,22 @@ export default function BlogPostSinglePage({ params }: { params: Promise<{ slug:
 
   useEffect(() => {
     const fetchSinglePost = async () => {
+      const { FALLBACK_BLOG_POSTS } = await import("@/lib/blog-posts");
       try {
         const { apiRequest } = await import("@/lib/api-client");
         const { data } = await apiRequest<BlogPost>(`/blog/${resolvedParams.slug}`);
         if (data) {
           setPost(data);
+          return;
         }
       } catch (err) {
         console.error("Blog post fetch error:", err);
+      }
+
+      // Check local fallback
+      const found = FALLBACK_BLOG_POSTS.find((p) => p.slug === resolvedParams.slug);
+      if (found) {
+        setPost(found);
       }
     };
 

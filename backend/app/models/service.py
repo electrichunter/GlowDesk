@@ -7,7 +7,7 @@ from app.db.session import Base
 class Service(Base):
     __tablename__ = "services"
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String(64), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     category = Column(String(100), nullable=True)

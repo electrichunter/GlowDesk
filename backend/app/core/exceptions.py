@@ -27,10 +27,18 @@ class ConflictError(GlowDeskException):
     def __init__(self, message: str = "Kayıt zaten mevcut."):
         super().__init__(message=message, status_code=status.HTTP_409_CONFLICT)
 
+CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
+}
+
 async def glowdesk_exception_handler(request: Request, exc: GlowDeskException):
     logger.warning(f"GlowDeskException [{exc.status_code}] on {request.url.path}: {exc.message}")
     return JSONResponse(
         status_code=exc.status_code,
+        headers=CORS_HEADERS,
         content={
             "error": True,
             "message": exc.message,
@@ -42,9 +50,10 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled Exception on {request.url.path}: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        headers=CORS_HEADERS,
         content={
             "error": True,
             "message": "Beklenmeyen bir sunucu hatası oluştu.",
-            "details": str(exc) if getattr(request.app, "debug", False) else {}
+            "details": str(exc)
         }
     )

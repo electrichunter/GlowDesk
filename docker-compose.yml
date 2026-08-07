@@ -120,7 +120,7 @@ services:
 
   # 5. Database (MySQL 8.0 / Latest)
   mysql:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: glowdesk_mysql
     restart: always
     environment:
@@ -135,7 +135,8 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pglowdesk_secret"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 15
+      start_period: 30s
 
   # 6. Database GUI (PhpMyAdmin)
   phpmyadmin:

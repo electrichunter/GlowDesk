@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import { apiRequest } from "@/lib/api-client";
 
 interface ServiceItem {
@@ -68,6 +70,45 @@ export default function SelfBookingPage() {
   const [notes, setNotes] = useState("");
   const [bookingRef, setBookingRef] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+
+  // Validation States
+  const [fullNameTouched, setFullNameTouched] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  // Phone Auto-Formatter (05XX XXX XX XX)
+  const handlePhoneChange = (val: string) => {
+    let raw = val.replace(/\D/g, "");
+    if (raw.length > 0) {
+      if (!raw.startsWith("0") && raw.startsWith("5")) {
+        raw = "0" + raw;
+      }
+      raw = raw.slice(0, 11);
+      let formatted = raw;
+      if (raw.length > 4 && raw.length <= 7) {
+        formatted = `${raw.slice(0, 4)} ${raw.slice(4)}`;
+      } else if (raw.length > 7 && raw.length <= 9) {
+        formatted = `${raw.slice(0, 4)} ${raw.slice(4, 7)} ${raw.slice(7)}`;
+      } else if (raw.length > 9) {
+        formatted = `${raw.slice(0, 4)} ${raw.slice(4, 7)} ${raw.slice(7, 9)} ${raw.slice(9)}`;
+      }
+      setPhone(formatted);
+    } else {
+      setPhone("");
+    }
+  };
+
+  const isPhoneValid = (p: string) => {
+    const digits = p.replace(/\D/g, "");
+    return digits.length === 11 && digits.startsWith("05");
+  };
+
+  const isFullNameValid = (name: string) => {
+    const trimmed = name.trim();
+    const parts = trimmed.split(/\s+/);
+    return trimmed.length >= 3 && parts.length >= 2 && parts.every((p) => p.length >= 2);
+  };
+
+  const isFormValid = isFullNameValid(fullName) && isPhoneValid(phone);
 
   useEffect(() => {
     const loadBookingPageData = async () => {
@@ -147,7 +188,20 @@ export default function SelfBookingPage() {
 
   const handleConfirmBooking = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFullNameTouched(true);
+    setPhoneTouched(true);
+
     if (!tenant) return;
+
+    if (!isFormValid) {
+      if (!isFullNameValid(fullName)) {
+        setErrorMessage("Lütfen adınızı ve soyadınızı eksiksiz giriniz (En az 2 kelime).");
+      } else if (!isPhoneValid(phone)) {
+        setErrorMessage("Lütfen geçerli bir Türkiye cep telefonu numarası giriniz (05XX XXX XX XX formatında).");
+      }
+      return;
+    }
+
     setSubmitting(true);
     setErrorMessage("");
 
@@ -190,10 +244,10 @@ export default function SelfBookingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-slate-400 font-extrabold uppercase tracking-wider">İşletme Bilgileri Yükleniyor...</p>
+          <div className="w-12 h-12 border-4 border-[#0066FF] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs text-slate-500 font-extrabold uppercase tracking-wider">İşletme Bilgileri Yükleniyor...</p>
         </div>
       </div>
     );
@@ -201,11 +255,11 @@ export default function SelfBookingPage() {
 
   if (errorMessage && !tenant) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
-        <div className="max-w-md w-full text-center space-y-4 bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-2xl">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center p-6 font-sans">
+        <div className="max-w-md w-full text-center space-y-4 bg-white p-8 rounded-3xl border border-slate-200 shadow-layered">
           <div className="text-5xl">⚠️</div>
-          <h2 className="text-2xl font-black font-display text-white">İşletme Bulunamadı</h2>
-          <p className="text-xs text-slate-400">{errorMessage}</p>
+          <h2 className="text-2xl font-black font-display text-slate-900">İşletme Bulunamadı</h2>
+          <p className="text-xs text-slate-500">{errorMessage}</p>
           <div className="pt-2">
             <Link href="/explore" className="btn-primary-blue text-xs py-3 px-6 inline-block">
               🔍 Tüm İşletmeleri Keşfet →
@@ -219,38 +273,42 @@ export default function SelfBookingPage() {
   const selectedStaffObj = staffList.find((s) => s.id === selectedStaffId);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans selection:bg-blue-600 selection:text-white">
-      
-      {/* ── HEADER ── */}
-      <header className="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-xl sticky top-0 z-40">
-        <div className="max-w-3xl mx-auto px-4 py-3.5 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans selection:bg-blue-600 selection:text-white">
+      <Navbar />
+
+      {/* ── MAIN CONTENT STEPPER ── */}
+      <main className="pt-28 pb-20 max-w-3xl w-full mx-auto px-4 flex-1">
+        
+        {/* Sub Header Card */}
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-layered mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/explore" className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-sm transition-colors" title="Keşfet'e Dön">
+            <Link
+              href={`/isletme/${tenant?.slug}`}
+              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm font-bold transition-colors"
+              title="İşletme Profiline Git"
+            >
               ←
             </Link>
             <div>
-              <h1 className="font-extrabold text-white text-base tracking-tight font-display">{tenant?.name}</h1>
-              <p className="text-xs text-slate-400 flex items-center gap-1">
+              <h1 className="font-extrabold text-slate-900 text-base tracking-tight font-display">{tenant?.name}</h1>
+              <p className="text-xs text-slate-500 flex items-center gap-1">
                 <span>📍</span>
                 <span>{tenant?.address || `${tenant?.district || ''}, ${tenant?.city || 'İstanbul'}`}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
-              ✓ Onaylı İşletme
-            </span>
-          </div>
+          <Link
+            href={`/isletme/${tenant?.slug}`}
+            className="px-3 py-1.5 rounded-full bg-blue-50 text-[#0066FF] border border-blue-200 text-xs font-bold hover:bg-[#0066FF] hover:text-white transition-colors"
+          >
+            🏬 Profili İncele
+          </Link>
         </div>
-      </header>
 
-      {/* ── MAIN CONTENT STEPPER ── */}
-      <main className="max-w-3xl w-full mx-auto px-4 py-8 flex-1">
-        
         {/* Error Alert Banner */}
         {errorMessage && (
-          <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-bold flex items-center gap-2">
+          <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
             <span>⚠️</span>
             <span>{errorMessage}</span>
           </div>
@@ -258,16 +316,16 @@ export default function SelfBookingPage() {
 
         {/* Stepper Progress Indicator */}
         {step <= 4 && (
-          <div className="mb-8">
+          <div className="mb-8 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
             <div className="flex justify-between text-xs font-extrabold text-slate-400 mb-2">
-              <span className={step >= 1 ? "text-blue-400" : ""}>1. Hizmet</span>
-              <span className={step >= 2 ? "text-blue-400" : ""}>2. Uzman</span>
-              <span className={step >= 3 ? "text-blue-400" : ""}>3. Tarih & Saat</span>
-              <span className={step >= 4 ? "text-blue-400" : ""}>4. Onay</span>
+              <span className={step >= 1 ? "text-[#0066FF]" : ""}>1. Hizmet</span>
+              <span className={step >= 2 ? "text-[#0066FF]" : ""}>2. Uzman</span>
+              <span className={step >= 3 ? "text-[#0066FF]" : ""}>3. Tarih & Saat</span>
+              <span className={step >= 4 ? "text-[#0066FF]" : ""}>4. Onay</span>
             </div>
-            <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 transition-all duration-500"
+                className="h-full bg-[#0066FF] transition-all duration-500 rounded-full"
                 style={{ width: `${(step / 4) * 100}%` }}
               />
             </div>
@@ -278,9 +336,9 @@ export default function SelfBookingPage() {
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Adım 1 / 4</span>
-              <h2 className="text-2xl font-black text-white font-display mt-1">Hangi Hizmeti Almak İstersiniz?</h2>
-              <p className="text-slate-400 text-xs mt-1">Lütfen almak istediğiniz randevu seansını seçin.</p>
+              <span className="text-xs font-extrabold text-[#0066FF] uppercase tracking-wider">Adım 1 / 4</span>
+              <h2 className="text-2xl font-black text-slate-900 font-display mt-1">Hangi Hizmeti Almak İstersiniz?</h2>
+              <p className="text-slate-500 text-xs mt-1">Lütfen almak istediğiniz randevu seansını seçin.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -290,28 +348,28 @@ export default function SelfBookingPage() {
                   <div
                     key={svc.id}
                     onClick={() => setSelectedService(svc)}
-                    className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-3 relative ${
+                    className={`p-5 rounded-3xl border transition-all cursor-pointer space-y-3 relative ${
                       isSelected
-                        ? "bg-blue-950/70 border-blue-500 ring-2 ring-blue-500/40 shadow-xl shadow-blue-500/10 scale-[1.02]"
-                        : "bg-slate-900/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900"
+                        ? "bg-blue-50/80 border-[#0066FF] ring-2 ring-blue-500/30 shadow-md scale-[1.01]"
+                        : "bg-white border-slate-200 hover:border-slate-300 hover:shadow-md"
                     }`}
                   >
                     <div className="flex justify-between items-start">
-                      <h3 className="font-extrabold text-white text-base font-display">{svc.name}</h3>
-                      <span className="text-xs font-mono font-black px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <h3 className="font-extrabold text-slate-900 text-base font-display">{svc.name}</h3>
+                      <span className="text-xs font-mono font-black px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                         ₺{svc.price}
                       </span>
                     </div>
 
                     {svc.description && (
-                      <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">{svc.description}</p>
+                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">{svc.description}</p>
                     )}
 
-                    <div className="flex items-center gap-4 text-xs text-slate-400 pt-1">
-                      <span className="flex items-center gap-1 font-semibold text-slate-300">
+                    <div className="flex items-center gap-4 text-xs text-slate-500 pt-1 font-medium">
+                      <span className="flex items-center gap-1 font-semibold text-slate-700">
                         ⏱ {svc.duration_minutes} Dakika
                       </span>
-                      <span className="text-cyan-400 font-bold">✨ Anında Onay</span>
+                      <span className="text-[#0066FF] font-bold">✨ Anında Onay</span>
                     </div>
                   </div>
                 );
@@ -321,7 +379,7 @@ export default function SelfBookingPage() {
             <button
               disabled={!selectedService}
               onClick={() => setStep(2)}
-              className="w-full py-4 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/25 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-all mt-4 cursor-pointer"
+              className="w-full py-4 rounded-2xl font-extrabold text-sm btn-primary-blue shadow-lg shadow-blue-500/20 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-all mt-4 cursor-pointer"
             >
               Devam Et: Uzman Seçimi ➔
             </button>
@@ -332,10 +390,10 @@ export default function SelfBookingPage() {
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Adım 2 / 4</span>
-              <h2 className="text-2xl font-black text-white font-display mt-1">Uzman / Kadro Tercihi</h2>
-              <p className="text-slate-400 text-xs mt-1">
-                Seçilen Hizmet: <strong className="text-blue-400 font-bold">{selectedService?.name}</strong>
+              <span className="text-xs font-extrabold text-[#0066FF] uppercase tracking-wider">Adım 2 / 4</span>
+              <h2 className="text-2xl font-black text-slate-900 font-display mt-1">Uzman / Kadro Tercihi</h2>
+              <p className="text-slate-500 text-xs mt-1">
+                Seçilen Hizmet: <strong className="text-[#0066FF] font-bold">{selectedService?.name}</strong>
               </p>
             </div>
 
@@ -345,20 +403,20 @@ export default function SelfBookingPage() {
                 onClick={() => setSelectedStaffId("any")}
                 className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                   selectedStaffId === "any"
-                    ? "bg-blue-950/70 border-blue-500 ring-2 ring-blue-500/40"
-                    : "bg-slate-900/80 border-slate-800 hover:border-slate-700"
+                    ? "bg-blue-50/80 border-[#0066FF] ring-2 ring-blue-500/30"
+                    : "bg-white border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-lg border border-blue-500/30">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#0066FF] flex items-center justify-center font-bold text-lg border border-blue-200">
                     ⚡
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-sm text-white">En Hızlı Müsait Seans (Fark Etmez)</h3>
-                    <p className="text-[11px] text-slate-400">En erken müsait uzmana otomatik atanır.</p>
+                    <h3 className="font-extrabold text-sm text-slate-900">En Hızlı Müsait Seans (Fark Etmez)</h3>
+                    <p className="text-[11px] text-slate-500">En erken müsait uzmana otomatik atanır.</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
                   En Hızlı ⚡
                 </span>
               </div>
@@ -370,20 +428,20 @@ export default function SelfBookingPage() {
                   onClick={() => setSelectedStaffId(stf.id)}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     selectedStaffId === stf.id
-                      ? "bg-blue-950/70 border-blue-500 ring-2 ring-blue-500/40"
-                      : "bg-slate-900/80 border-slate-800 hover:border-slate-700"
+                      ? "bg-blue-50/80 border-[#0066FF] ring-2 ring-blue-500/30"
+                      : "bg-white border-slate-200 hover:border-slate-300"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-800 text-white font-extrabold text-sm flex items-center justify-center border border-slate-700">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-[#0066FF] font-extrabold text-sm flex items-center justify-center border border-slate-200">
                       👤
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-sm text-white">{stf.fullName}</h3>
-                      <p className="text-[11px] text-slate-400">{stf.title || "İşletme Uzmanı"}</p>
+                      <h3 className="font-extrabold text-sm text-slate-900">{stf.fullName}</h3>
+                      <p className="text-[11px] text-slate-500">{stf.title || "İşletme Uzmanı"}</p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-slate-300 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                  <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
                     Müsait
                   </span>
                 </div>
@@ -394,14 +452,14 @@ export default function SelfBookingPage() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="w-1/3 py-4 rounded-2xl font-bold text-xs bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 transition-all cursor-pointer"
+                className="w-1/3 py-4 rounded-2xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
               >
                 ◀ Geri
               </button>
               <button
                 type="button"
                 onClick={() => setStep(3)}
-                className="w-2/3 py-4 rounded-2xl font-extrabold text-xs bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/25 hover:opacity-95 transition-all cursor-pointer"
+                className="w-2/3 py-4 rounded-2xl font-extrabold text-xs btn-primary-blue shadow-lg shadow-blue-500/20 hover:opacity-95 transition-all cursor-pointer"
               >
                 Devam Et: Tarih & Saat ➔
               </button>
@@ -413,39 +471,41 @@ export default function SelfBookingPage() {
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Adım 3 / 4</span>
-              <h2 className="text-2xl font-black text-white font-display mt-1">Tarih ve Saat Seçimi</h2>
-              <p className="text-slate-400 text-xs mt-1">Size en uygun randevu zamanını belirleyin.</p>
+              <span className="text-xs font-extrabold text-[#0066FF] uppercase tracking-wider">Adım 3 / 4</span>
+              <h2 className="text-2xl font-black text-slate-900 font-display mt-1">Tarih ve Saat Seçimi</h2>
+              <p className="text-slate-500 text-xs mt-1">Size en uygun randevu zamanını belirleyin.</p>
             </div>
 
-            <div>
-              <label className="block text-xs font-extrabold uppercase text-slate-400 mb-2">Tarih Seçin</label>
-              <input
-                type="date"
-                min={new Date().toISOString().split("T")[0]}
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 text-white font-extrabold text-sm focus:outline-none focus:border-blue-500 transition-all"
-              />
-            </div>
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-layered space-y-6">
+              <div>
+                <label className="block text-xs font-extrabold uppercase text-slate-600 mb-2">Tarih Seçin</label>
+                <input
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 font-extrabold text-sm focus:outline-none focus:border-[#0066FF] transition-all"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-extrabold uppercase text-slate-400 mb-2">Müsait Saatler</label>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                {TIME_SLOTS.map((slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => setSelectedTime(slot)}
-                    className={`py-3 px-2 rounded-xl text-xs font-extrabold font-mono transition-all border cursor-pointer ${
-                      selectedTime === slot
-                        ? "bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/30 scale-105"
-                        : "bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700"
-                    }`}
-                  >
-                    {slot}
-                  </button>
-                ))}
+              <div>
+                <label className="block text-xs font-extrabold uppercase text-slate-600 mb-2">Müsait Saatler</label>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                  {TIME_SLOTS.map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => setSelectedTime(slot)}
+                      className={`py-3 px-2 rounded-xl text-xs font-extrabold font-mono transition-all border cursor-pointer ${
+                        selectedTime === slot
+                          ? "bg-[#0066FF] border-[#0066FF] text-white shadow-md shadow-blue-500/25 scale-105"
+                          : "bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100"
+                      }`}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -453,7 +513,7 @@ export default function SelfBookingPage() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="w-1/3 py-4 rounded-2xl font-bold text-xs bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 transition-all cursor-pointer"
+                className="w-1/3 py-4 rounded-2xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
               >
                 ◀ Geri
               </button>
@@ -461,7 +521,7 @@ export default function SelfBookingPage() {
                 type="button"
                 disabled={!selectedTime}
                 onClick={() => setStep(4)}
-                className="w-2/3 py-4 rounded-2xl font-extrabold text-xs bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/25 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-all cursor-pointer"
+                className="w-2/3 py-4 rounded-2xl font-extrabold text-xs btn-primary-blue shadow-lg shadow-blue-500/20 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-all cursor-pointer"
               >
                 Devam Et: Bilgiler & Onay ➔
               </button>
@@ -473,90 +533,124 @@ export default function SelfBookingPage() {
         {step === 4 && (
           <form onSubmit={handleConfirmBooking} className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Adım 4 / 4</span>
-              <h2 className="text-2xl font-black text-white font-display mt-1">İletişim & Randevu Onayı</h2>
-              <p className="text-slate-400 text-xs mt-1">Bilgilerinizi girin, randevunuz doğrudan işletme takvimine işlensin.</p>
+              <span className="text-xs font-extrabold text-[#0066FF] uppercase tracking-wider">Adım 4 / 4</span>
+              <h2 className="text-2xl font-black text-slate-900 font-display mt-1">İletişim & Randevu Onayı</h2>
+              <p className="text-slate-500 text-xs mt-1">Bilgilerinizi girin, randevunuz doğrudan işletme takvimine işlensin.</p>
             </div>
 
             {/* Summary Box */}
-            <div className="p-5 rounded-3xl bg-blue-950/50 border border-blue-500/30 space-y-3 text-xs backdrop-blur-md">
-              <div className="flex justify-between items-center text-slate-300">
+            <div className="p-6 rounded-3xl bg-blue-50/80 border border-blue-200 space-y-3 text-xs shadow-layered">
+              <div className="flex justify-between items-center text-slate-700">
                 <span>İşletme:</span>
-                <strong className="text-white font-bold">{tenant?.name}</strong>
+                <strong className="text-slate-900 font-bold">{tenant?.name}</strong>
               </div>
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-slate-700">
                 <span>Seçilen Hizmet:</span>
-                <strong className="text-blue-400 font-bold">{selectedService?.name}</strong>
+                <strong className="text-[#0066FF] font-bold">{selectedService?.name}</strong>
               </div>
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-slate-700">
                 <span>Uzman Kadro:</span>
-                <strong className="text-cyan-400 font-bold">
+                <strong className="text-[#1E1B4B] font-bold">
                   {selectedStaffObj ? selectedStaffObj.fullName : "En Hızlı Müsait Seans"}
                 </strong>
               </div>
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-slate-700">
                 <span>Tarih & Saat:</span>
-                <strong className="text-white font-mono font-bold bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+                <strong className="text-slate-900 font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-blue-200">
                   {selectedDate} / {selectedTime}
                 </strong>
               </div>
-              <div className="flex justify-between items-center text-slate-300 border-t border-blue-500/20 pt-3">
-                <span className="font-bold text-white">Toplam Hizmet Tutarı:</span>
-                <strong className="text-emerald-400 font-mono text-base font-black">₺{selectedService?.price}</strong>
+              <div className="flex justify-between items-center text-slate-700 border-t border-blue-200 pt-3">
+                <span className="font-bold text-slate-900">Toplam Hizmet Tutarı:</span>
+                <strong className="text-emerald-600 font-mono text-base font-black">₺{selectedService?.price}</strong>
               </div>
             </div>
 
             {/* Contact Form Fields */}
-            <div className="space-y-4">
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-layered space-y-4">
               <div>
-                <label className="block text-xs font-extrabold uppercase text-slate-400 mb-1.5">Adınız Soyadınız *</label>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-xs font-extrabold uppercase text-slate-600">Adınız Soyadınız *</label>
+                  {fullNameTouched && isFullNameValid(fullName) && (
+                    <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">✓ Geçerli Ad Soyad</span>
+                  )}
+                </div>
                 <input
                   type="text"
                   required
                   placeholder="Örn: Ömer Faruk Uysal"
                   value={fullName}
+                  onBlur={() => setFullNameTouched(true)}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 text-white text-sm font-semibold focus:outline-none focus:border-blue-500 transition-all"
+                  className={`w-full p-4 rounded-2xl bg-slate-50 border text-slate-900 text-sm font-semibold focus:outline-none transition-all ${
+                    fullNameTouched && !isFullNameValid(fullName)
+                      ? "border-rose-500/80 ring-2 ring-rose-500/20 bg-rose-50/30"
+                      : isFullNameValid(fullName)
+                      ? "border-emerald-500/60 bg-emerald-50/20"
+                      : "border-slate-200 focus:border-[#0066FF]"
+                  }`}
                 />
+                {fullNameTouched && !isFullNameValid(fullName) && (
+                  <p className="text-[11px] text-rose-600 font-medium mt-1">
+                    ⚠️ Lütfen adınızı ve soyadınızı aralarında boşluk olacak şekilde eksiksiz girin.
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold uppercase text-slate-400 mb-1.5">Cep Telefonunuz (WhatsApp Teyit Mesajı İçin) *</label>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-xs font-extrabold uppercase text-slate-600">Cep Telefonunuz (WhatsApp Teyidi İçin) *</label>
+                  {phoneTouched && isPhoneValid(phone) && (
+                    <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">✓ Geçerli Telefon</span>
+                  )}
+                </div>
                 <input
                   type="tel"
                   required
                   placeholder="Örn: 0555 123 45 67"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 text-white text-sm font-mono font-semibold focus:outline-none focus:border-blue-500 transition-all"
+                  onBlur={() => setPhoneTouched(true)}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  className={`w-full p-4 rounded-2xl bg-slate-50 border text-slate-900 text-sm font-mono font-semibold focus:outline-none transition-all ${
+                    phoneTouched && !isPhoneValid(phone)
+                      ? "border-rose-500/80 ring-2 ring-rose-500/20 bg-rose-50/30"
+                      : isPhoneValid(phone)
+                      ? "border-emerald-500/60 bg-emerald-50/20"
+                      : "border-slate-200 focus:border-[#0066FF]"
+                  }`}
                 />
+                {phoneTouched && !isPhoneValid(phone) && (
+                  <p className="text-[11px] text-rose-600 font-medium mt-1">
+                    ⚠️ Lütfen 05XX ile başlayan 11 haneli geçerli bir cep telefonu numarası girin.
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold uppercase text-slate-400 mb-1.5">Özel Notunuz (İsteğe Bağlı)</label>
+                <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Özel Notunuz (İsteğe Bağlı)</label>
                 <input
                   type="text"
                   placeholder="Örn: İlk defa geliyorum / Hassas cilt bakımı ricası"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-blue-500 transition-all"
+                  className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-[#0066FF] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold uppercase text-slate-400 mb-1.5">Ödeme / Tahsilat Seçeneği</label>
+                <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Ödeme / Tahsilat Seçeneği</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setPaymentOption("on_site")}
                     className={`p-4 rounded-2xl border text-xs font-bold text-left transition-all cursor-pointer ${
                       paymentOption === "on_site"
-                        ? "bg-blue-950/70 border-blue-500 text-white ring-2 ring-blue-500/30"
-                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                        ? "bg-blue-50/90 border-[#0066FF] text-slate-900 ring-2 ring-blue-500/30"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <div className="font-extrabold text-white text-sm">🏠 İşletmede Tahsilat</div>
-                    <div className="text-[11px] text-slate-400 mt-1 font-normal">Nakit, POS veya Kredi Kartı</div>
+                    <div className="font-extrabold text-slate-900 text-sm">🏠 İşletmede Tahsilat</div>
+                    <div className="text-[11px] text-slate-500 mt-1 font-normal">Nakit, POS veya Kredi Kartı</div>
                   </button>
 
                   <button
@@ -564,12 +658,12 @@ export default function SelfBookingPage() {
                     onClick={() => setPaymentOption("deposit")}
                     className={`p-4 rounded-2xl border text-xs font-bold text-left transition-all cursor-pointer ${
                       paymentOption === "deposit"
-                        ? "bg-blue-950/70 border-blue-500 text-white ring-2 ring-blue-500/30"
-                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                        ? "bg-blue-50/90 border-[#0066FF] text-slate-900 ring-2 ring-blue-500/30"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <div className="font-extrabold text-white text-sm">💳 Kapara & Provizyon</div>
-                    <div className="text-[11px] text-emerald-400 mt-1 font-normal">No-Show Koruması Onaylı</div>
+                    <div className="font-extrabold text-slate-900 text-sm">💳 Kapara & Provizyon</div>
+                    <div className="text-[11px] text-emerald-600 mt-1 font-normal">No-Show Koruması Onaylı</div>
                   </button>
                 </div>
               </div>
@@ -579,14 +673,14 @@ export default function SelfBookingPage() {
               <button
                 type="button"
                 onClick={() => setStep(3)}
-                className="w-1/3 py-4 rounded-2xl font-bold text-xs bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 transition-all cursor-pointer"
+                className="w-1/3 py-4 rounded-2xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
               >
                 ◀ Geri
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-2/3 py-4 rounded-2xl font-black text-sm bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 text-white shadow-xl shadow-emerald-500/20 hover:opacity-95 disabled:opacity-40 transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-2/3 py-4 rounded-2xl font-black text-sm btn-primary-blue shadow-xl shadow-blue-500/20 hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <>
@@ -603,47 +697,47 @@ export default function SelfBookingPage() {
 
         {/* ── STEP 5: GERÇEK BAŞARI EKRANI ── */}
         {step === 5 && (
-          <div className="text-center py-12 space-y-6 animate-in fade-in zoom-in-95 duration-300">
-            <div className="w-20 h-20 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center justify-center text-4xl mx-auto shadow-2xl shadow-emerald-500/20">
+          <div className="text-center py-12 space-y-6 animate-in fade-in zoom-in-95 duration-300 bg-white p-8 sm:p-12 rounded-3xl border border-slate-200 shadow-layered">
+            <div className="w-20 h-20 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full flex items-center justify-center text-4xl mx-auto shadow-lg">
               ✓
             </div>
             
             <div className="space-y-2">
-              <span className="px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+              <span className="px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
                 ● Gerçek Veritabanı Kaydı Başarılı
               </span>
-              <h2 className="text-3xl font-black text-white font-display">Randevunuz Takvime İşlendi!</h2>
-              <p className="text-slate-400 text-xs max-w-md mx-auto">
+              <h2 className="text-3xl font-black text-slate-900 font-display">Randevunuz Takvime İşlendi!</h2>
+              <p className="text-slate-500 text-xs max-w-md mx-auto">
                 {tenant?.name} yönetim paneline ve canlı takvimine randevunuz başarıyla kaydedilmiştir.
               </p>
             </div>
 
-            <div className="max-w-md mx-auto p-6 bg-slate-900/90 border border-slate-800 rounded-3xl text-left space-y-3.5 shadow-2xl backdrop-blur-xl">
-              <div className="flex justify-between items-center text-xs border-b border-slate-800 pb-3">
-                <span className="text-slate-400 font-bold uppercase tracking-wider">Referans Kodu</span>
-                <span className="font-mono font-black text-cyan-400 text-sm bg-slate-950 px-3 py-1 rounded-xl border border-slate-800 tracking-wider">
+            <div className="max-w-md mx-auto p-6 bg-slate-50 border border-slate-200 rounded-3xl text-left space-y-3.5 shadow-xs">
+              <div className="flex justify-between items-center text-xs border-b border-slate-200 pb-3">
+                <span className="text-slate-500 font-bold uppercase tracking-wider">Referans Kodu</span>
+                <span className="font-mono font-black text-[#0066FF] text-sm bg-white px-3 py-1 rounded-xl border border-slate-200 tracking-wider">
                   {bookingRef}
                 </span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-slate-400">İşletme:</span>
-                <span className="font-extrabold text-white">{tenant?.name}</span>
+                <span className="text-slate-500">İşletme:</span>
+                <span className="font-extrabold text-slate-900">{tenant?.name}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-slate-400">Müşteri:</span>
-                <span className="font-extrabold text-white">{fullName}</span>
+                <span className="text-slate-500">Müşteri:</span>
+                <span className="font-extrabold text-slate-900">{fullName}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-slate-400">Telefon:</span>
-                <span className="font-mono font-bold text-slate-300">{phone}</span>
+                <span className="text-slate-500">Telefon:</span>
+                <span className="font-mono font-bold text-slate-800">{phone}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-slate-400">Hizmet:</span>
-                <span className="font-extrabold text-blue-400">{selectedService?.name}</span>
+                <span className="text-slate-500">Hizmet:</span>
+                <span className="font-extrabold text-[#0066FF]">{selectedService?.name}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-slate-400">Tarih & Saat:</span>
-                <span className="font-mono font-bold text-emerald-400">{selectedDate} / {selectedTime}</span>
+                <span className="text-slate-500">Tarih & Saat:</span>
+                <span className="font-mono font-bold text-emerald-600">{selectedDate} / {selectedTime}</span>
               </div>
             </div>
 
@@ -655,13 +749,13 @@ export default function SelfBookingPage() {
                   setSelectedTime("");
                   setErrorMessage("");
                 }}
-                className="px-6 py-3.5 rounded-2xl font-bold text-xs bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 transition-all cursor-pointer"
+                className="px-6 py-3.5 rounded-2xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
               >
                 + Başka Randevu Al
               </button>
               <Link
                 href="/explore"
-                className="px-6 py-3.5 rounded-2xl font-extrabold text-xs bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all cursor-pointer inline-block"
+                className="px-6 py-3.5 rounded-2xl font-extrabold text-xs btn-primary-blue shadow-md hover:scale-105 transition-all cursor-pointer inline-block"
               >
                 🔍 İşletmeleri Keşfet →
               </Link>
@@ -671,10 +765,7 @@ export default function SelfBookingPage() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
-        Powered by <strong className="text-slate-300 font-extrabold">GlowDesk Real-Time Enterprise Engine</strong>
-      </footer>
+      <Footer />
     </div>
   );
 }

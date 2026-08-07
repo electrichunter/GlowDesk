@@ -13,12 +13,17 @@ export default function BlogListPage() {
     const fetchPosts = async () => {
       try {
         const { apiRequest } = await import("@/lib/api-client");
+        const { FALLBACK_BLOG_POSTS } = await import("@/lib/blog-posts");
         const { data } = await apiRequest<BlogPost[]>("/blog");
-        if (data && Array.isArray(data)) {
+        if (data && Array.isArray(data) && data.length > 0) {
           setPosts(data);
+        } else {
+          setPosts(FALLBACK_BLOG_POSTS);
         }
       } catch (err) {
         console.error("Blog posts fetch error:", err);
+        const { FALLBACK_BLOG_POSTS } = await import("@/lib/blog-posts");
+        setPosts(FALLBACK_BLOG_POSTS);
       }
     };
 

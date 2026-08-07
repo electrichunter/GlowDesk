@@ -193,15 +193,15 @@ export default function Navbar() {
               </button>
               {activeDropdown === "services" && (
                 <div className="absolute top-full left-0 w-64 bg-white rounded-2xl shadow-xl border border-slate-200/80 p-3 space-y-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <Link href="/#features" onClick={(e) => handleNavAnchor(e, "features")} className="block px-3.5 py-2.5 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] transition-all hover:translate-x-1">
+                  <Link href="/hizmetler/no-show-engelleyici" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2.5 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] transition-all hover:translate-x-1">
                     <div className="font-bold text-slate-800 text-xs">⚡ No-Show Engelleyici</div>
                     <div className="text-[11px] text-slate-500 font-normal">Gelmeyen müşterileri otomatik tespit eder.</div>
                   </Link>
-                  <Link href="/#features" onClick={(e) => handleNavAnchor(e, "features")} className="block px-3.5 py-2.5 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] transition-all hover:translate-x-1">
+                  <Link href="/hizmetler/whatsapp-otomasyonu" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2.5 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] transition-all hover:translate-x-1">
                     <div className="font-bold text-slate-800 text-xs">💬 WhatsApp Otomasyonu</div>
                     <div className="text-[11px] text-slate-500 font-normal">Tek tıkla randevu onay mesajları.</div>
                   </Link>
-                  <Link href="/#features" onClick={(e) => handleNavAnchor(e, "features")} className="block px-3.5 py-2.5 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] transition-all hover:translate-x-1">
+                  <Link href="/hizmetler/bekleme-listesi-motoru" onClick={() => setActiveDropdown(null)} className="block px-3.5 py-2.5 rounded-xl hover:bg-blue-50 hover:text-[#0066FF] transition-all hover:translate-x-1">
                     <div className="font-bold text-slate-800 text-xs">📋 Bekleme Listesi Motoru</div>
                     <div className="text-[11px] text-slate-500 font-normal">Boş slotları otomatik doldurur.</div>
                   </Link>

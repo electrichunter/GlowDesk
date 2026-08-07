@@ -457,8 +457,8 @@ export default async function SectorPage({ params }: { params: Promise<{ vertica
                 <Link href="/register/business" className="btn-primary-blue text-sm py-3.5 px-8">
                   {config.badgeLabel} İçin 1 Ay Ücretsiz Başla →
                 </Link>
-                <Link href="/#pricing" className="btn-secondary-white text-sm py-3 px-6">
-                  Paketleri İncele
+                <Link href={`/explore?sector=${config.slug}`} className="px-6 py-3.5 rounded-2xl bg-blue-50 text-[#0066FF] border border-blue-200 hover:bg-[#0066FF] hover:text-white font-extrabold text-sm transition-all shadow-xs flex items-center gap-1.5">
+                  📅 {config.badgeLabel} Randevu Al →
                 </Link>
               </div>
             </div>

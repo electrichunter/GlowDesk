@@ -28,6 +28,17 @@ export default function SettingsPage() {
   const [lunchStart, setLunchStart] = useState("12:30");
   const [lunchEnd, setLunchEnd] = useState("13:30");
 
+  // Media & Gallery States
+  const [description, setDescription] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [coverImage, setCoverImage] = useState("");
+  const [galleryImages, setGalleryImages] = useState<string[]>([
+    "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=800&q=80"
+  ]);
+  const [newGalleryUrl, setNewGalleryUrl] = useState("");
+
   // Enterprise States
   const [smsSenderHeader, setSmsSenderHeader] = useState("GLOWSALON");
   const [branches, setBranches] = useState<Array<{ id: string; name: string; city: string; district: string; neighborhood?: string; street?: string; is_main?: boolean }>>([
@@ -210,6 +221,10 @@ export default function SettingsPage() {
           street: address,
           address,
           sector,
+          description,
+          logo_url: logoUrl,
+          cover_image: coverImage,
+          gallery_images: galleryImages,
         }),
       });
 
@@ -442,6 +457,103 @@ export default function SettingsPage() {
                 onChange={(e) => setAddress(e.target.value)}
                 className="input-dark h-20 resize-none"
               />
+            </div>
+
+            {/* 🖼️ Görsel ve Galeri Yönetimi */}
+            <div className="pt-4 border-t border-slate-200 space-y-4">
+              <div>
+                <h4 className="text-xs font-bold uppercase text-[#1E1B4B] tracking-wider flex items-center gap-1.5">
+                  🖼️ Görsel & Salon Galerisi (Halka Açık Profil Fotoğrafları)
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  İşletmenizin logosu, kapak resmi ve salon içi çalışma görsellerini ayarlayın. Müşterileriniz profil sayfanızda (`/isletme/${session?.tenantId || 'demo-salon'}`) bu fotoğrafları görecektir.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-1">İşletme Hakkında Açıklama Metni</label>
+                <textarea
+                  placeholder="İşletmeniz hakkında müşterilerinize sunmak istediğiniz tanıtım yazısı..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="input-dark h-20 resize-none text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1">Logo URL / Fotoğrafı</label>
+                  <input
+                    type="url"
+                    placeholder="https://... (Logo Bağlantısı)"
+                    value={logoUrl}
+                    onChange={(e) => setLogoUrl(e.target.value)}
+                    className="input-dark text-xs"
+                  />
+                  {logoUrl && (
+                    <div className="mt-2 w-16 h-16 rounded-2xl overflow-hidden border border-slate-200 shadow-xs">
+                      <img src={logoUrl} alt="Logo Önizleme" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1">Kapak Fotoğrafı (Banner) URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://... (Kapak Görseli)"
+                    value={coverImage}
+                    onChange={(e) => setCoverImage(e.target.value)}
+                    className="input-dark text-xs"
+                  />
+                  {coverImage && (
+                    <div className="mt-2 h-16 rounded-2xl overflow-hidden border border-slate-200 shadow-xs">
+                      <img src={coverImage} alt="Kapak Önizleme" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Salon Galeri Fotoğrafları */}
+              <div className="space-y-2 pt-2">
+                <label className="block text-xs font-bold uppercase text-slate-600">Salon İçi Çalışma Fotoğrafları (Galeri)</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {galleryImages.map((imgUrl, idx) => (
+                    <div key={idx} className="relative group h-24 rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-slate-100">
+                      <img src={imgUrl} alt={`Galeri ${idx + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setGalleryImages((prev) => prev.filter((_, i) => i !== idx))}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 text-white font-bold text-xs flex items-center justify-center opacity-90 hover:opacity-100 shadow-md cursor-pointer"
+                        title="Fotoğrafı Sil"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <input
+                    type="url"
+                    placeholder="Yeni salon fotoğrafı URL'si ekleyin (https://...)"
+                    value={newGalleryUrl}
+                    onChange={(e) => setNewGalleryUrl(e.target.value)}
+                    className="input-dark text-xs flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newGalleryUrl.trim()) return;
+                      setGalleryImages((prev) => [...prev, newGalleryUrl.trim()]);
+                      setNewGalleryUrl("");
+                    }}
+                    className="btn-cyan text-xs py-2 px-4 shadow-xs font-extrabold"
+                  >
+                    + Galeriye Ekle
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Öğle Molası Ayarları */}

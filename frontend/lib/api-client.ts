@@ -30,14 +30,22 @@ export async function apiRequest<T = any>(
     }
 
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const url = typeof window !== 'undefined'
+    let url = typeof window !== 'undefined'
       ? `${API_BASE}${cleanEndpoint}`
       : `${process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000/api'}${cleanEndpoint}`;
 
-    const res = await fetch(url, {
-      ...options,
-      headers,
-    });
+    let res: Response;
+    try {
+      res = await fetch(url, { ...options, headers });
+    } catch (primaryErr) {
+      // If primary fetch failed in browser on localhost:3000, attempt direct call to http://localhost:8000/api
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        const fallbackUrl = `http://${window.location.hostname}:8000/api${cleanEndpoint}`;
+        res = await fetch(fallbackUrl, { ...options, headers });
+      } else {
+        throw primaryErr;
+      }
+    }
 
     const body = await res.json().catch(() => null);
 

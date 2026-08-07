@@ -11,11 +11,11 @@ from app.db.session import Base
 class Appointment(Base):
     __tablename__ = "appointments"
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String(64), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
-    customer_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    staff_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    service_id = Column(String(36), ForeignKey("services.id", ondelete="SET NULL"), nullable=True)
+    customer_id = Column(String(64), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    staff_id = Column(String(64), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    service_id = Column(String(64), ForeignKey("services.id", ondelete="SET NULL"), nullable=True)
     service_name = Column(String(255), nullable=True)
     customer_name = Column(String(255), nullable=False)
     customer_phone = Column(String(50), nullable=False)

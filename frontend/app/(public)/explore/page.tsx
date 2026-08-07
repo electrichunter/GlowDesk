@@ -122,23 +122,37 @@ export default function ExploreTenantsPage() {
             </div>
           </div>
 
-          {/* Sector Pill Selector */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {SECTORS.map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                onClick={() => setSelectedSector(s.key)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-                  selectedSector === s.key
-                    ? "bg-[#0066FF] text-white shadow-md shadow-blue-500/25 scale-105"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <span>{s.icon}</span>
-                <span>{s.label}</span>
-              </button>
-            ))}
+          {/* Sector Pill Selector (Flex-Wrap to avoid truncation/overflow) */}
+          <div className="pt-4 border-t border-slate-100 space-y-2.5">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-500">
+              <span>Sektöre Göre Filtrele</span>
+              {selectedSector !== "all" && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedSector("all")}
+                  className="text-[#0066FF] hover:underline font-extrabold text-[11px] cursor-pointer"
+                >
+                  ✕ Filtreyi Temizle
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {SECTORS.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setSelectedSector(s.key)}
+                  className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    selectedSector === s.key
+                      ? "bg-[#0066FF] text-white shadow-md shadow-blue-500/25 scale-105"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/60"
+                  }`}
+                >
+                  <span>{s.icon}</span>
+                  <span>{s.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -187,13 +201,16 @@ export default function ExploreTenantsPage() {
                     )}
                   </div>
 
-                  <div className="pt-6 mt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs text-slate-400 font-semibold">
-                      📞 {t.phone || "+90 (555) 000 00 00"}
-                    </span>
+                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <Link
+                      href={`/isletme/${t.slug}`}
+                      className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all text-center"
+                    >
+                      🏬 Profil
+                    </Link>
                     <Link
                       href={`/book/${t.slug}`}
-                      className="btn-primary-blue text-xs py-2.5 px-5 shadow-sm group-hover:scale-105 transition-transform"
+                      className="btn-primary-blue text-xs py-2 px-4 shadow-sm group-hover:scale-105 transition-transform text-center font-extrabold"
                     >
                       Randevu Al →
                     </Link>
