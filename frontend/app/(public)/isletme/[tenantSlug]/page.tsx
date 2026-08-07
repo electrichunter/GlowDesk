@@ -57,19 +57,28 @@ export default function PublicBusinessProfilePage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0);
 
+  const [tenantAppointments, setTenantAppointments] = useState<any[]>([]);
+
   useEffect(() => {
+    const controller = new AbortController();
     const loadProfileData = async () => {
       setLoading(true);
       try {
         // 1. Fetch Tenant data
-        const resTenant = await apiRequest<PublicTenantProfile>(`/tenants/public/by-slug/${tenantSlug}`);
+        const resTenant = await apiRequest<PublicTenantProfile>(`/tenants/public/by-slug/${tenantSlug}`, { signal: controller.signal });
         if (resTenant.data) {
           setTenant(resTenant.data);
           const tId = resTenant.data.id;
           const currentSectorAsset = getSectorAsset(resTenant.data.sector || tenantSlug);
 
+          // Fetch Appointments for live availability
+          const resApts = await apiRequest<any[]>(`/appointments?tenant_id=${tId}`, { signal: controller.signal });
+          if (resApts.data && Array.isArray(resApts.data)) {
+            setTenantAppointments(resApts.data);
+          }
+
           // 2. Fetch Services
-          const resServices = await apiRequest<ServiceItem[]>(`/services/public/${tId}`);
+          const resServices = await apiRequest<ServiceItem[]>(`/services/public/${tId}`, { signal: controller.signal });
           if (resServices.data && Array.isArray(resServices.data) && resServices.data.length > 0) {
             setServices(
               resServices.data.map((s: any) => ({
@@ -86,21 +95,24 @@ export default function PublicBusinessProfilePage() {
           }
 
           // 3. Fetch Staff
-          const resStaff = await apiRequest<StaffItem[]>(`/staff/public/${tId}`);
+          const resStaff = await apiRequest<StaffItem[]>(`/staff/public/${tId}`, { signal: controller.signal });
           if (resStaff.data && Array.isArray(resStaff.data) && resStaff.data.length > 0) {
             setStaffList(resStaff.data);
           } else {
             setStaffList(currentSectorAsset.defaultStaff);
           }
         }
-      } catch (err) {
-        console.error("Profile load error:", err);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Profile load error:", err);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     loadProfileData();
+    return () => controller.abort();
   }, [tenantSlug]);
 
   if (loading) {
@@ -393,35 +405,37 @@ export default function PublicBusinessProfilePage() {
                   Müsait Saatler ({selectedDayOffset === 0 ? "Bugün" : "Seçili Gün"}):
                 </span>
                 <div className="grid grid-cols-3 gap-1.5 max-h-48 overflow-y-auto pr-1">
-                  {[
-                    { time: "09:30", available: true },
-                    { time: "10:30", available: true },
-                    { time: "11:30", available: false },
-                    { time: "13:30", available: true },
-                    { time: "14:30", available: true },
-                    { time: "15:30", available: true },
-                    { time: "16:30", available: false },
-                    { time: "17:30", available: true },
-                    { time: "18:30", available: true },
-                  ].map((slot, i) => {
+                  {["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"].map((timeStr, i) => {
                     const targetDate = new Date();
                     targetDate.setDate(targetDate.getDate() + selectedDayOffset);
                     const dateStr = targetDate.toISOString().split("T")[0];
 
                     const now = new Date();
-                    const [slotH, slotM] = slot.time.split(":").map(Number);
+                    const [slotH, slotM] = timeStr.split(":").map(Number);
                     const isPastTime =
                       selectedDayOffset === 0 &&
                       (slotH < now.getHours() || (slotH === now.getHours() && slotM <= now.getMinutes()));
-                    const isAvailable = slot.available && !isPastTime;
+
+                    // Check if an existing appointment exists on dateStr at this time
+                    const isBooked = tenantAppointments.some((apt) => {
+                      const aptDate = apt.appointment_date || apt.start_time?.split("T")[0];
+                      let aptStartTime = apt.start_time || "";
+                      if (aptStartTime.includes("T")) {
+                        aptStartTime = aptStartTime.split("T")[1];
+                      }
+                      const aptTime = aptStartTime.slice(0, 5);
+                      return aptDate === dateStr && aptTime === timeStr && apt.status !== "cancelled";
+                    });
+
+                    const isAvailable = !isBooked && !isPastTime;
 
                     return isAvailable ? (
                       <Link
                         key={i}
-                        href={`/book/${tenant.slug}?date=${dateStr}&time=${slot.time}`}
+                        href={`/book/${tenant.slug}?date=${dateStr}&time=${timeStr}`}
                         className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 text-center font-extrabold text-xs transition-all shadow-2xs group flex flex-col items-center justify-center"
                       >
-                        <span className="font-mono text-xs">{slot.time}</span>
+                        <span className="font-mono text-xs">{timeStr}</span>
                         <span className="text-[9px] font-semibold text-emerald-600 group-hover:text-white">Müsait ➔</span>
                       </Link>
                     ) : (
@@ -429,7 +443,7 @@ export default function PublicBusinessProfilePage() {
                         key={i}
                         className="p-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 text-center font-bold text-xs opacity-60 flex flex-col items-center justify-center cursor-not-allowed"
                       >
-                        <span className="font-mono text-xs line-through">{slot.time}</span>
+                        <span className="font-mono text-xs line-through">{timeStr}</span>
                         <span className="text-[9px] text-rose-500 font-semibold">{isPastTime ? "Geçmiş Saat" : "Dolu"}</span>
                       </div>
                     );

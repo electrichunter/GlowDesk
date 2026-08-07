@@ -29,14 +29,20 @@ class ResourceRepository(BaseRepository[Resource]):
             .all()
         )
 
-    def get_bookings_in_slot(self, resource_id: str, start_time, end_time) -> List[ResourceBooking]:
-        return (
+    def get_bookings_in_slot(self, resource_id: str, booking_date, start_time, end_time) -> List[ResourceBooking]:
+        query = (
             self.db.query(ResourceBooking)
             .filter(
                 ResourceBooking.resource_id == resource_id,
+                ResourceBooking.booking_date == booking_date,
                 ResourceBooking.status == "reserved",
                 ResourceBooking.start_time < end_time,
                 ResourceBooking.end_time > start_time,
             )
-            .all()
         )
+        try:
+            return query.with_for_update().all()
+        except Exception:
+            # Fallback if SQLite / DB backend does not support FOR UPDATE
+            return query.all()
+

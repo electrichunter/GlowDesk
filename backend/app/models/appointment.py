@@ -22,8 +22,10 @@ class Appointment(Base):
     appointment_date = Column(Date, nullable=False)
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
+    reference_code = Column(String(20), unique=True, index=True, nullable=True)
     status = Column(String(50), nullable=False, default="scheduled")
     # scheduled, confirmed, in_progress, completed, cancelled, no_show
+
     notes = Column(Text, nullable=True)
     total_price = Column(Numeric(10, 2), default=0.00)
     vertical = Column(String(50), nullable=False, default="salon")

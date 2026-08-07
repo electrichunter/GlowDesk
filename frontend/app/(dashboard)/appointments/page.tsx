@@ -42,54 +42,24 @@ export default function AppointmentsPage() {
   }, [tenant, vertical]);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchAllData = async () => {
       setLoading(true);
       try {
         const { apiRequest } = await import("@/lib/api-client");
+        const { mapApiAppointment } = await import("@/lib/appointment-utils");
         
         // 1. MySQL Appointments
-        const aptUrl = tenant?.id ? `/appointments?tenant_id=${tenant.id}` : "/appointments";
-        const { data: dbApts } = await apiRequest<any[]>(aptUrl);
+        const activeTenantId = tenant?.id;
+        const aptUrl = activeTenantId ? `/appointments?tenant_id=${activeTenantId}` : "/appointments";
+        const { data: dbApts } = await apiRequest<any[]>(aptUrl, { signal: controller.signal });
         if (dbApts && Array.isArray(dbApts)) {
-          setAppointments(
-            dbApts.map((a) => {
-              const dateStr = a.appointment_date || new Date().toISOString().split("T")[0];
-              const sTime = a.start_time ? (a.start_time.includes("T") ? a.start_time : `${dateStr}T${a.start_time}`) : `${dateStr}T10:00:00Z`;
-              const eTime = a.end_time ? (a.end_time.includes("T") ? a.end_time : `${dateStr}T${a.end_time}`) : `${dateStr}T11:00:00Z`;
-
-              return {
-                id: a.id,
-                tenant_id: a.tenant_id,
-                customer_id: a.customer_id,
-                service_id: a.service_id,
-                start_time: sTime,
-                end_time: eTime,
-                status: (a.status || "scheduled") as AppointmentStatus,
-                notes: a.notes || undefined,
-                created_at: a.created_at || new Date().toISOString(),
-                customer: {
-                  id: a.customer_id || "cust-1",
-                  tenant_id: a.tenant_id || "global",
-                  full_name: a.customer_name,
-                  phone: a.customer_phone,
-                  created_at: a.created_at || new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
-                },
-                service: {
-                  id: a.service_id || "svc-1",
-                  tenant_id: a.tenant_id || "global",
-                  name: a.service_name || "Genel Hizmet",
-                  duration_minutes: 30,
-                  price: parseFloat(a.total_price || 0),
-                  created_at: new Date().toISOString(),
-                },
-              };
-            })
-          );
+          setAppointments(dbApts.map(mapApiAppointment));
         }
 
         // 2. MySQL Customers
-        const { data: dbCusts } = await apiRequest<any[]>("/customers");
+        const custUrl = activeTenantId ? `/customers?tenant_id=${activeTenantId}` : "/customers";
+        const { data: dbCusts } = await apiRequest<any[]>(custUrl, { signal: controller.signal });
         if (dbCusts && Array.isArray(dbCusts)) {
           setCustomers(
             dbCusts.map((c) => ({
@@ -105,7 +75,8 @@ export default function AppointmentsPage() {
         }
 
         // 3. MySQL Services
-        const { data: dbSvcs } = await apiRequest<any[]>("/services");
+        const svcUrl = activeTenantId ? `/services?tenant_id=${activeTenantId}` : "/services";
+        const { data: dbSvcs } = await apiRequest<any[]>(svcUrl, { signal: controller.signal });
         if (dbSvcs && Array.isArray(dbSvcs)) {
           setServices(
             dbSvcs.map((s) => ({
@@ -118,43 +89,88 @@ export default function AppointmentsPage() {
             }))
           );
         }
-      } catch (err) {
-        console.error("Appointments fetch error:", err);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Appointments fetch error:", err);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchAllData();
-  }, []);
+    return () => controller.abort();
+  }, [tenant?.id]);
 
   // Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedServiceId, setSelectedServiceId] = useState("");
-  const [selectedWorkstation, setSelectedWorkstation] = useState("1. Koltuk (Ahmet Usta)");
+  const [selectedWorkstation, setSelectedWorkstation] = useState("");
   const [appointmentDate, setAppointmentDate] = useState(new Date().toISOString().split("T")[0]);
   const [appointmentTime, setAppointmentTime] = useState("10:00");
   const [notes, setNotes] = useState("");
 
+  // Sync default workstation when activeWorkstations changes
+  useEffect(() => {
+    if (activeWorkstations.length > 0 && !selectedWorkstation) {
+      setSelectedWorkstation(activeWorkstations[0]);
+    }
+  }, [activeWorkstations, selectedWorkstation]);
+
+  const handleUpdateStatus = async (id: string, newStatus: AppointmentStatus) => {
+    const previousAppointments = [...appointments];
+    const updated = appointments.map(a => a.id === id ? { ...a, status: newStatus } : a);
+    setAppointments(updated);
+
+    try {
+      localStorage.setItem("glowdesk_appointments", JSON.stringify(updated));
+      const { apiRequest } = await import("@/lib/api-client");
+      const { error } = await apiRequest(`/appointments/${id}/status?status=${newStatus}`, {
+        method: "PATCH",
+      });
+
+      if (error) {
+        setAppointments(previousAppointments);
+        alert(`❌ Durum güncellenemedi: ${error}`);
+      }
+    } catch (err) {
+      setAppointments(previousAppointments);
+      console.error("Status update API error:", err);
+    }
+  };
+
+
   const handleAddAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!selectedCustomerId || !selectedServiceId) {
+      alert("⚠️ Lütfen müşteri ve hizmet seçimini eksiksiz yapınız.");
+      return;
+    }
+
     const customer = customers.find(c => c.id === selectedCustomerId);
     const service = services.find(s => s.id === selectedServiceId);
+    const durationMin = service?.duration_minutes || 30;
+
+    const { computeEndTimeStr } = await import("@/lib/appointment-utils");
+    const endTimeStr = computeEndTimeStr(appointmentTime, durationMin);
+    const currentTenantId = tenant?.id || "tenant-demo-1";
 
     try {
       const { apiRequest } = await import("@/lib/api-client");
       const { data: newApt, error } = await apiRequest<any>("/appointments/", {
         method: "POST",
         body: JSON.stringify({
-          tenant_id: "tenant-demo-1",
+          tenant_id: currentTenantId,
           customer_name: customer?.full_name || "Müşteri",
           customer_phone: customer?.phone || "+90 555 000 0000",
           appointment_date: appointmentDate,
           start_time: `${appointmentTime}:00`,
-          end_time: "11:00:00",
-          notes: `${notes} (${selectedWorkstation})`,
+          end_time: endTimeStr,
+          notes: `${notes} (${selectedWorkstation || activeWorkstations[0]})`.trim(),
           total_price: service?.price || 0.0,
+          service_id: selectedServiceId,
+          customer_id: selectedCustomerId,
         }),
       });
 
@@ -164,19 +180,15 @@ export default function AppointmentsPage() {
       }
 
       if (newApt) {
-        const formatted: Appointment = {
-          id: newApt.id,
-          tenant_id: newApt.tenant_id,
-          customer_id: selectedCustomerId,
-          service_id: selectedServiceId,
-          start_time: `${appointmentDate}T${appointmentTime}:00Z`,
-          end_time: `${appointmentDate}T11:00:00Z`,
-          status: "confirmed",
-          notes: `${notes} (${selectedWorkstation})`,
-          created_at: new Date().toISOString(),
-          customer,
-          service,
-        };
+        const { mapApiAppointment } = await import("@/lib/appointment-utils");
+        const formatted = mapApiAppointment({
+          ...newApt,
+          customer_name: customer?.full_name,
+          customer_phone: customer?.phone,
+          service_name: service?.name,
+          duration_minutes: durationMin,
+          total_price: service?.price || 0.0,
+        });
 
         setAppointments((prev) => [formatted, ...prev]);
         setShowAddModal(false);
@@ -382,11 +394,7 @@ export default function AppointmentsPage() {
             setSelectedWorkstation(ws);
             setShowAddModal(true);
           }}
-          onUpdateStatus={(id, status) => {
-            const updated = appointments.map(a => a.id === id ? { ...a, status } : a);
-            setAppointments(updated);
-            localStorage.setItem("glowdesk_appointments", JSON.stringify(updated));
-          }}
+          onUpdateStatus={handleUpdateStatus}
         />
       ) : (
         /* Randevu Kartları Akışı */
@@ -396,11 +404,7 @@ export default function AppointmentsPage() {
               <AppointmentCard 
                 key={apt.id} 
                 appointment={apt} 
-                onUpdateStatus={(id, status) => {
-                  const updated = appointments.map(a => a.id === id ? { ...a, status } : a);
-                  setAppointments(updated);
-                  localStorage.setItem("glowdesk_appointments", JSON.stringify(updated));
-                }}
+                onUpdateStatus={handleUpdateStatus}
               />
             ))
           ) : (

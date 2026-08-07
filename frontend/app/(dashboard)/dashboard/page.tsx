@@ -39,10 +39,14 @@ export default function DashboardPage() {
   const [selectedPosApt, setSelectedPosApt] = useState<Appointment | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"nakit" | "kredi_karti" | "havale">("kredi_karti");
   const [posSuccess, setPosSuccess] = useState(false);
-  const [dailyPosTotal, setDailyPosTotal] = useState<{ nakit: number; kredi: number; total: number }>({
-    nakit: 0,
-    kredi: 0,
-    total: 0,
+  const [dailyPosTotal, setDailyPosTotal] = useState<{ nakit: number; kredi: number; havale: number; total: number }>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("glowdesk_daily_pos_total");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return { nakit: 0, kredi: 0, havale: 0, total: 0 };
   });
 
   const [isImpersonating] = useState(() => !!getCurrentSession()?.impersonatingTenantId);
@@ -66,90 +70,51 @@ export default function DashboardPage() {
       }
 
       // MySQL Veritabanından Randevuları Çek
+      const controller = new AbortController();
       const loadDashboardData = async () => {
         setLoading(true);
         try {
           const { apiRequest } = await import("@/lib/api-client");
-          const { data: dbApts } = await apiRequest<any[]>("/appointments");
-          if (dbApts && Array.isArray(dbApts)) {
-            const formatted: Appointment[] = dbApts.map((a) => ({
-              id: a.id,
-              tenant_id: a.tenant_id,
-              customer_id: a.customer_id,
-              service_id: a.service_id,
-              start_time: a.start_time || `${a.appointment_date}T10:00:00Z`,
-              end_time: a.end_time || `${a.appointment_date}T11:00:00Z`,
-              status: a.status || "confirmed",
-              notes: a.notes || undefined,
-              created_at: a.created_at || new Date().toISOString(),
-              customer: {
-                id: a.customer_id || "cust-1",
-                tenant_id: a.tenant_id || "global",
-                full_name: a.customer_name,
-                phone: a.customer_phone,
-                created_at: a.created_at || new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              },
-              service: {
-                id: a.service_id || "svc-1",
-                tenant_id: a.tenant_id || "global",
-                name: a.service_name || "Genel Hizmet",
-                duration_minutes: 30,
-                price: parseFloat(a.total_price || 0),
-                created_at: a.created_at || new Date().toISOString(),
-              },
-            }));
+          const { mapApiAppointment, getDateFromIso } = await import("@/lib/appointment-utils");
 
+          const activeTenantId = activeUser?.tenantId || "tenant-demo-1";
+          const aptUrl = activeTenantId ? `/appointments?tenant_id=${activeTenantId}` : "/appointments";
+          const { data: dbApts } = await apiRequest<any[]>(aptUrl, { signal: controller.signal });
+
+          if (dbApts && Array.isArray(dbApts)) {
+            const formatted: Appointment[] = dbApts.map(mapApiAppointment);
             setAppointments(formatted);
 
-            const confirmed = formatted.filter((a) => a.status === "confirmed" || a.status === "pending").length;
-            const noShow = formatted.filter((a) => a.status === "no_show").length;
-            const completed = formatted.filter((a) => a.status === "completed").length;
-            const revenue = formatted.reduce((acc, a) => acc + (a.service?.price || 0), 0);
+            const todayStr = new Date().toISOString().split("T")[0];
+            const todayApts = formatted.filter((a) => getDateFromIso(a.start_time) === todayStr);
+
+            const todayConfirmed = todayApts.filter((a) => a.status === "confirmed" || a.status === "pending").length;
+            const todayNoShow = todayApts.filter((a) => a.status === "no_show").length;
+            const completedApts = formatted.filter((a) => a.status === "completed");
+            const revenue = completedApts.reduce((acc, a) => acc + (a.service?.price || 0), 0);
 
             setStats({
-              today_appointments: formatted.length,
-              today_confirmed: confirmed,
-              today_no_show: noShow,
-              today_empty_slots: Math.max(0, 10 - formatted.length),
+              today_appointments: todayApts.length,
+              today_confirmed: todayConfirmed,
+              today_no_show: todayNoShow,
+              today_empty_slots: Math.max(0, 10 - todayApts.length),
               monthly_revenue: revenue,
-              monthly_appointments: completed,
-              no_show_rate: formatted.length > 0 ? Math.round((noShow / formatted.length) * 100) : 0,
-              waitlist_count: 2,
-
-              // Sektöre Özel Metrik Eşleşmeleri
-              open_cases: 14,
-              deposit_pending: 3,
-              lab_orders_pending: 4,
-              recalled_patients: 12,
-              bay_occupancy: 75,
-              storage_bins_used: 48,
-              active_members: 128,
-              class_occupancy: 92,
-              vaccines_due: 5,
-              pet_hotel_occupancy: 80,
-              assignments_pending: 3,
-              active_students: 42,
-              gallery_reviews_pending: 6,
-              rented_equipment: 9,
-              vip_room_occupancy: 85,
-              vouchers_sold: 18,
-              room_occupancy: 78,
-              corporate_credits_used: 340,
-              completed_hours: 142,
-              exam_candidates: 11,
-              total_guests: 64,
-              table_occupancy: 82,
+              monthly_appointments: completedApts.length,
+              no_show_rate: todayApts.length > 0 ? Math.round((todayNoShow / todayApts.length) * 100) : 0,
+              waitlist_count: 0,
             });
           }
-        } catch (err) {
-          console.error("Dashboard data load error:", err);
+        } catch (err: any) {
+          if (err?.name !== "AbortError") {
+            console.error("Dashboard data load error:", err);
+          }
         } finally {
           setLoading(false);
         }
       };
 
       loadDashboardData();
+      return () => controller.abort();
     } catch {
       setAppointments([]);
       setLoading(false);
@@ -185,14 +150,18 @@ export default function DashboardPage() {
     // Randevuyu tamamlandı yap
     handleUpdateStatus(selectedPosApt.id, "completed");
 
-    // Kasa toplamını güncelle
+    // Kasa toplamını güncelle ve localStorage'a kaydet
     setDailyPosTotal((prev) => {
-      const isNakit = paymentMethod === "nakit";
-      return {
-        nakit: isNakit ? prev.nakit + price : prev.nakit,
-        kredi: !isNakit ? prev.kredi + price : prev.kredi,
+      const nextTotal = {
+        nakit: paymentMethod === "nakit" ? prev.nakit + price : prev.nakit,
+        kredi: paymentMethod === "kredi_karti" ? prev.kredi + price : prev.kredi,
+        havale: paymentMethod === "havale" ? (prev.havale || 0) + price : (prev.havale || 0),
         total: prev.total + price,
       };
+      try {
+        localStorage.setItem("glowdesk_daily_pos_total", JSON.stringify(nextTotal));
+      } catch {}
+      return nextTotal;
     });
 
     setPosSuccess(true);

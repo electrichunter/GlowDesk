@@ -53,7 +53,8 @@ async def global_exception_handler(request: Request, exc: Exception):
         headers=CORS_HEADERS,
         content={
             "error": True,
-            "message": "Beklenmeyen bir sunucu hatası oluştu.",
-            "details": str(exc)
+            "message": "Beklenmeyen bir sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.",
+            "details": None
         }
     )
+

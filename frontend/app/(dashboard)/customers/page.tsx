@@ -5,8 +5,10 @@ import type { Customer } from "@/lib/types";
 import { safeJsonParse } from "@/lib/sanitize";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { useTenant } from "@/contexts/TenantContext";
 
 export default function CustomersPage() {
+  const { tenant } = useTenant();
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,11 +16,14 @@ export default function CustomersPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchCustomers = async () => {
       setLoading(true);
       try {
         const { apiRequest } = await import("@/lib/api-client");
-        const { data } = await apiRequest<any[]>("/customers");
+        const activeTenantId = tenant?.id;
+        const url = activeTenantId ? `/customers?tenant_id=${activeTenantId}` : "/customers";
+        const { data } = await apiRequest<any[]>(url, { signal: controller.signal });
         if (data && Array.isArray(data)) {
           setCustomers(
             data.map((c) => ({
@@ -36,15 +41,18 @@ export default function CustomersPage() {
             }))
           );
         }
-      } catch (err) {
-        console.error("Customers fetch error:", err);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Customers fetch error:", err);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchCustomers();
-  }, []);
+    return () => controller.abort();
+  }, [tenant?.id]);
 
   // Form State
   const [fullName, setFullName] = useState("");
@@ -61,6 +69,7 @@ export default function CustomersPage() {
       const { data: newCust, error } = await apiRequest<any>("/customers", {
         method: "POST",
         body: JSON.stringify({
+          tenantId: tenant?.id || "global",
           fullName: fullName.trim(),
           phone: phone.trim() || null,
           email: email.trim() || null,
@@ -102,7 +111,7 @@ export default function CustomersPage() {
   };
 
   // Kara Listeye Al / Engeli Kaldır
-  const handleToggleBlacklist = (customer: Customer) => {
+  const handleToggleBlacklist = async (customer: Customer) => {
     const nextStatus = !customer.is_blacklisted;
     const updated = customers.map((c) =>
       c.id === customer.id ? { ...c, is_blacklisted: nextStatus } : c
@@ -124,6 +133,15 @@ export default function CustomersPage() {
 
     if (selectedCustomer?.id === customer.id) {
       setSelectedCustomer({ ...selectedCustomer, is_blacklisted: nextStatus });
+    }
+
+    try {
+      const { apiRequest } = await import("@/lib/api-client");
+      await apiRequest(`/customers/${customer.id}/toggle-blacklist`, {
+        method: "PATCH",
+      });
+    } catch (err) {
+      console.error("Customer blacklist toggle API error:", err);
     }
   };
 

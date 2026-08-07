@@ -135,32 +135,29 @@ def get_tenant(tenant_id: str, db: Session = Depends(get_db)):
         "status": tenant.status or "active"
     }
 
+from app.schemas.tenant import TenantUpdate
+from app.middleware.auth_middleware import get_current_user
+from app.schemas.auth import UserPayload
+
 @router.put("/{tenant_id}")
-def update_tenant(tenant_id: str, payload: dict, db: Session = Depends(get_db)):
+def update_tenant(
+    tenant_id: str,
+    payload: TenantUpdate,
+    db: Session = Depends(get_db),
+    current_user: UserPayload = Depends(get_current_user)
+):
+    if current_user.role not in ["admin", "owner"] or (current_user.role == "owner" and current_user.tenant_id != tenant_id):
+        raise HTTPException(status_code=403, detail="Bu işletmeyi güncelleme yetkiniz yok.")
+
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(status_code=404, detail="İşletme bulunamadı.")
 
-    if "name" in payload and payload["name"]:
-        tenant.name = payload["name"]
-    if "phone" in payload:
-        tenant.phone = payload["phone"]
-    if "email" in payload:
-        tenant.email = payload["email"]
-    if "city" in payload:
-        tenant.city = payload["city"]
-    if "district" in payload:
-        tenant.district = payload["district"]
-    if "neighborhood" in payload:
-        tenant.neighborhood = payload["neighborhood"]
-    if "street" in payload:
-        tenant.street = payload["street"]
-    if "address" in payload:
-        tenant.address = payload["address"]
-    if "sector" in payload and payload["sector"]:
-        tenant.sector = payload["sector"]
-    if "subscription_tier" in payload and payload["subscription_tier"]:
-        tenant.subscription_tier = payload["subscription_tier"]
+    data = payload.model_dump(exclude_unset=True)
+
+    for field in ["name", "phone", "email", "city", "district", "neighborhood", "street", "address", "sector"]:
+        if field in data and data[field] is not None:
+            setattr(tenant, field, data[field])
 
     import json
     settings = {}
@@ -170,9 +167,9 @@ def update_tenant(tenant_id: str, payload: dict, db: Session = Depends(get_db)):
         except Exception:
             pass
 
-    for key in ["description", "logo_url", "cover_image", "gallery_images"]:
-        if key in payload:
-            settings[key] = payload[key]
+    for key in ["description", "logo_url", "cover_image"]:
+        if key in data and data[key] is not None:
+            settings[key] = data[key]
 
     tenant.settings_json = json.dumps(settings)
 
@@ -192,6 +189,7 @@ def update_tenant(tenant_id: str, payload: dict, db: Session = Depends(get_db)):
             "address": tenant.address,
         }
     }
+
 
 @router.post("/{tenant_id}/seed-demo")
 def trigger_seed_demo_data(tenant_id: str, sector: Optional[str] = "beauty", db: Session = Depends(get_db)):

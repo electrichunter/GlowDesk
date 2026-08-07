@@ -116,12 +116,13 @@ export default function SelfBookingPage() {
   const isFormValid = isFullNameValid(fullName) && isPhoneValid(phone);
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadBookingPageData = async () => {
       setLoading(true);
       setErrorMessage("");
       try {
         // 1. Fetch Tenant data from DB by slug
-        const resTenant = await apiRequest<TenantInfo>(`/tenants/public/by-slug/${tenantSlug}`);
+        const resTenant = await apiRequest<TenantInfo>(`/tenants/public/by-slug/${tenantSlug}`, { signal: controller.signal });
         if (!resTenant.data) {
           setErrorMessage("İşletme bulunamadı veya pasif durumda.");
           setLoading(false);
@@ -132,7 +133,7 @@ export default function SelfBookingPage() {
         setTenant(tData);
 
         // 2. Fetch Services for this specific Tenant
-        const resServices = await apiRequest<ServiceItem[]>(`/services/public/${tData.id}`);
+        const resServices = await apiRequest<ServiceItem[]>(`/services/public/${tData.id}`, { signal: controller.signal });
         if (resServices.data && Array.isArray(resServices.data) && resServices.data.length > 0) {
           setServices(
             resServices.data.map((s: any) => ({
@@ -156,7 +157,7 @@ export default function SelfBookingPage() {
         }
 
         // 3. Fetch Real Staff for this specific Tenant from DB
-        const resStaff = await apiRequest<StaffItem[]>(`/staff/public/${tData.id}`);
+        const resStaff = await apiRequest<StaffItem[]>(`/staff/public/${tData.id}`, { signal: controller.signal });
         if (resStaff.data && Array.isArray(resStaff.data) && resStaff.data.length > 0) {
           setStaffList(resStaff.data);
         } else {
@@ -164,15 +165,18 @@ export default function SelfBookingPage() {
           setStaffList(currentSectorAsset.defaultStaff);
         }
 
-      } catch (err) {
-        console.error("Booking page load error:", err);
-        setErrorMessage("İşletme verileri yüklenirken bir hata oluştu.");
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Booking page load error:", err);
+          setErrorMessage("İşletme verileri yüklenirken bir hata oluştu.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     loadBookingPageData();
+    return () => controller.abort();
   }, [tenantSlug]);
 
   // Calculate end time based on selected service duration

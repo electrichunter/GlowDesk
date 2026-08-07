@@ -4,7 +4,7 @@ ResourceOrchestrator — Çok kaynaklı atomik rezervasyon ve çakışma önleme
 Tüm dikey sektörlerdeki fiziki kaynak (oda, koltuk, cihaz, lift, bay, plato, ünit)
 uygunluğunu atomik transaction ve `SELECT ... FOR UPDATE` kilitleri ile denetler.
 """
-from datetime import time, datetime, timedelta
+from datetime import time, datetime, timedelta, date
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from app.repositories.resource_repository import ResourceRepository
@@ -29,6 +29,7 @@ class ResourceOrchestrator:
         self,
         tenant_id: str,
         resource_ids: List[str],
+        booking_date: date,
         start_time: time,
         end_time: time,
         buffer_after_minutes: int = 0,
@@ -51,6 +52,7 @@ class ResourceOrchestrator:
             # Çakışan rezervasyon kontrolü
             conflicts = self.repo.get_bookings_in_slot(
                 resource_id=r_id,
+                booking_date=booking_date,
                 start_time=start_time,
                 end_time=effective_end_time,
             )
@@ -66,6 +68,7 @@ class ResourceOrchestrator:
         self,
         appointment_id: str,
         resource_ids: List[str],
+        booking_date: date,
         start_time: time,
         end_time: time,
     ) -> List[ResourceBooking]:
@@ -75,6 +78,7 @@ class ResourceOrchestrator:
             booking = ResourceBooking(
                 appointment_id=appointment_id,
                 resource_id=r_id,
+                booking_date=booking_date,
                 start_time=start_time,
                 end_time=end_time,
                 status="reserved",
@@ -84,3 +88,4 @@ class ResourceOrchestrator:
 
         self.db.commit()
         return bookings
+

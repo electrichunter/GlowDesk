@@ -62,18 +62,23 @@ export default function SettingsPage() {
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchTenantData = async () => {
       const active = getCurrentSession();
-      if (active) {
-        setSession(active);
-        if (active.businessName) setTenantName(active.businessName);
-        if (active.phone) setPhone(active.phone);
-        if (active.sector) setSector(active.sector as BusinessSector);
+      if (active || tenant) {
+        if (active) setSession(active);
+        const currentName = tenant?.name || active?.businessName;
+        const currentPhone = tenant?.settings?.phone || active?.phone;
+        const currentSector = tenant?.sector || active?.sector;
+
+        if (currentName) setTenantName(currentName);
+        if (currentPhone) setPhone(currentPhone);
+        if (currentSector) setSector(currentSector as BusinessSector);
 
         try {
           const { apiRequest } = await import("@/lib/api-client");
-          const tenantId = active.tenantId || "tenant-demo-1";
-          const { data } = await apiRequest<any>(`/tenants/${tenantId}`);
+          const tenantId = tenant?.id || active?.tenantId || "tenant-demo-1";
+          const { data } = await apiRequest<any>(`/tenants/${tenantId}`, { signal: controller.signal });
           if (data) {
             if (data.name) setTenantName(data.name);
             if (data.phone) setPhone(data.phone);
@@ -84,14 +89,17 @@ export default function SettingsPage() {
             if (data.address) setAddress(data.address);
             if (data.sector) setSector(data.sector as BusinessSector);
           }
-        } catch (err) {
-          console.error("Tenant settings load error:", err);
+        } catch (err: any) {
+          if (err?.name !== "AbortError") {
+            console.error("Tenant settings load error:", err);
+          }
         }
       }
     };
 
     fetchTenantData();
-  }, []);
+    return () => controller.abort();
+  }, [tenant]);
 
   // Ana Şube Konumunu kullanıcının kayıtlı şehir/ilçe/mahalle/adres bilgileriyle senkronize et
   useEffect(() => {

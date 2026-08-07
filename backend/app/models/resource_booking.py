@@ -12,9 +12,9 @@ aynı anda kilitlediği durumları yönetir.
   - Coworking: toplantı odası + projektör + ikram
 """
 import uuid
-from datetime import datetime, time
+from datetime import datetime, time, date
 from sqlalchemy import (
-    Column, String, Time, DateTime, ForeignKey,
+    Column, String, Time, Date, DateTime, ForeignKey,
     Enum as SAEnum, UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
@@ -40,6 +40,7 @@ class ResourceBooking(Base):
     )
 
     # --- Zaman aralığı ---
+    booking_date = Column(Date, nullable=False, default=date.today, index=True)
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
 
@@ -61,9 +62,10 @@ class ResourceBooking(Base):
     # --- Kısıtlamalar ---
     __table_args__ = (
         UniqueConstraint(
-            "resource_id", "start_time", "end_time",
-            name="uq_resource_time_slot",
+            "resource_id", "booking_date", "start_time", "end_time",
+            name="uq_resource_date_time_slot",
         ),
+
         {
             'mysql_engine': 'InnoDB',
             'mysql_charset': 'utf8mb4',

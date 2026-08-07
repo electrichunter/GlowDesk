@@ -70,54 +70,74 @@ export default function FinancePage() {
   // Digital Invoice PDF Preview State
   const [selectedInvoiceEntry, setSelectedInvoiceEntry] = useState<FinancialEntry | null>(null);
 
-  const fetchFinanceData = async () => {
-    setLoading(true);
-    try {
-      const { apiRequest } = await import("@/lib/api-client");
-      const tenantId = getCurrentSession()?.tenantId || "tenant-demo-1";
-      const { data } = await apiRequest<any>(`/finance/entries?tenant_id=${tenantId}`);
-
-      if (data) {
-        setEntries(data.entries || []);
-        setSummary(data.summary || { totalIncome: 0, totalExpense: 0, netBalance: 0, entryCount: 0 });
-      }
-    } catch (err) {
-      console.warn("Finance fetch warning:", err);
-      // Fallback mock entries if DB is loading
-      const mockEntries: FinancialEntry[] = [
-        {
-          id: "fn-1",
-          tenant_id: "demo",
-          type: "income",
-          category: "Hizmet / Seans Geliri",
-          amount: 4500,
-          description: "Müşteri Seans Ödemesi",
-          payment_method: "Kredi Kartı",
-          entry_date: new Date().toISOString().split("T")[0],
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "fn-2",
-          tenant_id: "demo",
-          type: "expense",
-          category: "Kira Gideri",
-          amount: 12000,
-          description: "Ağustos Ayı Ofis / Salon Kirası",
-          payment_method: "Banka Transferi / EFT",
-          entry_date: new Date().toISOString().split("T")[0],
-          created_at: new Date().toISOString(),
-        },
-      ];
-      setEntries(mockEntries);
-      setSummary({ totalIncome: 4500, totalExpense: 12000, netBalance: -7500, entryCount: 2 });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const controller = new AbortController();
+    const fetchFinanceData = async () => {
+      setLoading(true);
+      try {
+        const { apiRequest } = await import("@/lib/api-client");
+        const activeTenantId = tenant?.id || getCurrentSession()?.tenantId || "tenant-demo-1";
+        const { data } = await apiRequest<any>(`/finance/entries?tenant_id=${activeTenantId}`, { signal: controller.signal });
+
+        if (data && data.entries) {
+          setEntries(data.entries || []);
+          setSummary(data.summary || { totalIncome: 0, totalExpense: 0, netBalance: 0, entryCount: 0 });
+        } else {
+          // Fallback mock entries if DB endpoint returns empty
+          const mockEntries: FinancialEntry[] = [
+            {
+              id: "fn-1",
+              tenant_id: activeTenantId,
+              type: "income",
+              category: "Hizmet / Seans Geliri",
+              amount: 4500,
+              description: "Müşteri Seans Ödemesi",
+              payment_method: "Kredi Kartı",
+              entry_date: new Date().toISOString().split("T")[0],
+              created_at: new Date().toISOString(),
+            },
+            {
+              id: "fn-2",
+              tenant_id: activeTenantId,
+              type: "expense",
+              category: "Kira Gideri",
+              amount: 12000,
+              description: "Ağustos Ayı Ofis / Salon Kirası",
+              payment_method: "Banka Transferi / EFT",
+              entry_date: new Date().toISOString().split("T")[0],
+              created_at: new Date().toISOString(),
+            },
+          ];
+          setEntries(mockEntries);
+          setSummary({ totalIncome: 4500, totalExpense: 12000, netBalance: -7500, entryCount: 2 });
+        }
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.warn("Finance fetch warning:", err);
+          const mockEntries: FinancialEntry[] = [
+            {
+              id: "fn-1",
+              tenant_id: tenant?.id || "demo",
+              type: "income",
+              category: "Hizmet / Seans Geliri",
+              amount: 4500,
+              description: "Müşteri Seans Ödemesi",
+              payment_method: "Kredi Kartı",
+              entry_date: new Date().toISOString().split("T")[0],
+              created_at: new Date().toISOString(),
+            },
+          ];
+          setEntries(mockEntries);
+          setSummary({ totalIncome: 4500, totalExpense: 0, netBalance: 4500, entryCount: 1 });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchFinanceData();
-  }, []);
+    return () => controller.abort();
+  }, [tenant?.id]);
 
   const handleAddEntry = async (e: React.FormEvent) => {
     e.preventDefault();

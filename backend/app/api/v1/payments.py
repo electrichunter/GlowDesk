@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.services.payment_service import payment_service, ProcessPaymentRequest, PaymentResult
+from app.middleware.rbac import require_roles
 
 router = APIRouter(prefix="/payments", tags=["Payments & Checkout"])
+
 
 @router.post("/process", response_model=PaymentResult)
 def process_payment(payload: ProcessPaymentRequest, db: Session = Depends(get_db)):
@@ -45,5 +47,10 @@ async def payment_provider_webhook(request: Request, x_signature: str = Header(N
     return {"received": True, "detail": logger_msg}
 
 @router.post("/refund/{transaction_id}")
-def refund_payment(transaction_id: str, amount: float):
+def refund_payment(
+    transaction_id: str,
+    amount: float,
+    current_user_payload: dict = Depends(require_roles(["admin", "owner"]))
+):
     return payment_service.refund_transaction(transaction_id, amount)
+

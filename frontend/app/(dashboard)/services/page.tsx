@@ -9,7 +9,7 @@ import { SkeletonCard } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function ServicesPage() {
-  const { vertical, verticalConfig } = useTenant();
+  const { vertical, verticalConfig, tenant } = useTenant();
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<Service[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -17,11 +17,14 @@ export default function ServicesPage() {
   const [selectedTemplateSector, setSelectedTemplateSector] = useState("salon");
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchServices = async () => {
       setLoading(true);
       try {
         const { apiRequest } = await import("@/lib/api-client");
-        const { data } = await apiRequest<any[]>("/services");
+        const activeTenantId = tenant?.id;
+        const url = activeTenantId ? `/services?tenant_id=${activeTenantId}` : "/services";
+        const { data } = await apiRequest<any[]>(url, { signal: controller.signal });
         if (data && Array.isArray(data) && data.length > 0) {
           setServices(
             data.map((s) => ({
@@ -42,7 +45,7 @@ export default function ServicesPage() {
           setServices(
             templates.map((t) => ({
               id: t.id,
-              tenant_id: "demo",
+              tenant_id: tenant?.id || "demo",
               name: t.name,
               category: t.category,
               duration_minutes: t.duration_minutes,
@@ -53,30 +56,32 @@ export default function ServicesPage() {
             }))
           );
         }
-      } catch (err) {
-        console.error("Services fetch error:", err);
-        // Fallback sektörel varsayılanlar
-        const templates = getSectorServiceTemplates(vertical);
-        setServices(
-          templates.map((t) => ({
-            id: t.id,
-            tenant_id: "demo",
-            name: t.name,
-            category: t.category,
-            duration_minutes: t.duration_minutes,
-            price: t.price,
-            currency: "TRY",
-            description: t.description,
-            created_at: new Date().toISOString(),
-          }))
-        );
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Services fetch error:", err);
+          const templates = getSectorServiceTemplates(vertical);
+          setServices(
+            templates.map((t) => ({
+              id: t.id,
+              tenant_id: tenant?.id || "demo",
+              name: t.name,
+              category: t.category,
+              duration_minutes: t.duration_minutes,
+              price: t.price,
+              currency: "TRY",
+              description: t.description,
+              created_at: new Date().toISOString(),
+            }))
+          );
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchServices();
-  }, [vertical]);
+    return () => controller.abort();
+  }, [vertical, tenant?.id]);
 
   function floatNumber(val: any): number {
     const p = parseFloat(val);
@@ -97,7 +102,7 @@ export default function ServicesPage() {
       const { data: newSvc, error } = await apiRequest<any>("/services", {
         method: "POST",
         body: JSON.stringify({
-          tenantId: "tenant-demo-1",
+          tenantId: tenant?.id || "tenant-demo-1",
           name: name.trim(),
           durationMinutes: duration,
           price: price,
@@ -131,11 +136,17 @@ export default function ServicesPage() {
     }
   };
 
-  const handleDeleteService = (id: string) => {
+  const handleDeleteService = async (id: string) => {
     if (confirm("Bu hizmeti silmek istediğinize emin misiniz?")) {
       const updated = services.filter(s => s.id !== id);
       setServices(updated);
-      localStorage.setItem("glowdesk_services", JSON.stringify(updated));
+      try {
+        localStorage.setItem("glowdesk_services", JSON.stringify(updated));
+        const { apiRequest } = await import("@/lib/api-client");
+        await apiRequest(`/services/${id}`, { method: "DELETE" });
+      } catch (err) {
+        console.error("Service delete error:", err);
+      }
     }
   };
 

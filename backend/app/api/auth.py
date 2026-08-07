@@ -1,16 +1,19 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, status, Header, Request
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.user import User
 from app.models.tenant import Tenant
 from app.schemas.auth import LoginRequest, TokenResponse, RegisterBusinessRequest, RegisterCustomerRequest
 from app.core.security import verify_password, get_password_hash, create_access_token, decode_access_token
+from app.middleware.rate_limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
+
     user = db.query(User).filter(User.email == payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(
@@ -47,7 +50,8 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer", "user": user_payload}
 
 @router.post("/register/business")
-def register_business(payload: RegisterBusinessRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register_business(request: Request, payload: RegisterBusinessRequest, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Bu e-posta adresi zaten kayıtlı.")
@@ -118,7 +122,8 @@ def register_business(payload: RegisterBusinessRequest, db: Session = Depends(ge
     }
 
 @router.post("/register/customer")
-def register_customer(payload: RegisterCustomerRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register_customer(request: Request, payload: RegisterCustomerRequest, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Bu e-posta adresi zaten kayıtlı.")
