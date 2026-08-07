@@ -491,20 +491,32 @@ export default function SelfBookingPage() {
               <div>
                 <label className="block text-xs font-extrabold uppercase text-slate-600 mb-2">Müsait Saatler</label>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                  {TIME_SLOTS.map((slot) => (
-                    <button
-                      key={slot}
-                      type="button"
-                      onClick={() => setSelectedTime(slot)}
-                      className={`py-3 px-2 rounded-xl text-xs font-extrabold font-mono transition-all border cursor-pointer ${
-                        selectedTime === slot
-                          ? "bg-[#0066FF] border-[#0066FF] text-white shadow-md shadow-blue-500/25 scale-105"
-                          : "bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100"
-                      }`}
-                    >
-                      {slot}
-                    </button>
-                  ))}
+                  {TIME_SLOTS.map((slot) => {
+                    const todayStr = new Date().toISOString().split("T")[0];
+                    const now = new Date();
+                    const [slotH, slotM] = slot.split(":").map(Number);
+                    const isPast =
+                      selectedDate === todayStr &&
+                      (slotH < now.getHours() || (slotH === now.getHours() && slotM <= now.getMinutes()));
+
+                    return (
+                      <button
+                        key={slot}
+                        type="button"
+                        disabled={isPast}
+                        onClick={() => !isPast && setSelectedTime(slot)}
+                        className={`py-3 px-2 rounded-xl text-xs font-extrabold font-mono transition-all border ${
+                          isPast
+                            ? "bg-slate-100 border-slate-200 text-slate-400 line-through opacity-50 cursor-not-allowed"
+                            : selectedTime === slot
+                            ? "bg-[#0066FF] border-[#0066FF] text-white shadow-md shadow-blue-500/25 scale-105 cursor-pointer"
+                            : "bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100 cursor-pointer"
+                        }`}
+                      >
+                        {slot} {isPast ? "❌" : ""}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

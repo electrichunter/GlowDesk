@@ -79,18 +79,42 @@ export default function CalendarView({ appointments, customWorkstations, onSelec
   // Extract Appointments for Current Date
   const currentAppointments = useMemo(() => {
     return appointments.filter((apt) => {
-      const aptDate = apt.start_time?.split("T")[0] || apt.date || currentDate;
+      let aptDate = currentDate;
+      if (apt.start_time) {
+        aptDate = apt.start_time.split("T")[0];
+      } else if (apt.date) {
+        aptDate = apt.date;
+      }
       return aptDate === currentDate;
     });
   }, [appointments, currentDate]);
 
   // Helper to match appointment to workstation & hour
-  const getAppointmentForSlot = (wsName: string, hour: number) => {
+  const getAppointmentForSlot = (wsName: string, hour: number, wsIndex: number) => {
     return currentAppointments.filter((apt) => {
-      const startTime = apt.start_time?.split("T")[1]?.slice(0, 5) || apt.time || "10:00";
-      const aptHour = parseInt(startTime.split(":")[0], 10);
-      const matchesWs = apt.notes ? apt.notes.includes(wsName.split(" ")[0]) : wsName.includes("1. Koltuk");
-      return matchesWs && aptHour === hour;
+      // 1. Time parsing (ISO datetime, time string or fallback)
+      let timeStr = apt.start_time || apt.time || "10:00:00";
+      if (timeStr.includes("T")) {
+        timeStr = timeStr.split("T")[1];
+      }
+      const aptHour = parseInt(timeStr.split(":")[0], 10);
+      if (isNaN(aptHour) || aptHour !== hour) return false;
+
+      // 2. Workstation matching (check notes, or default to first station)
+      if (apt.notes) {
+        const firstWord = wsName.split(" ")[0];
+        if (apt.notes.includes(firstWord) || apt.notes.includes(wsName)) {
+          return true;
+        }
+      }
+      // If workstation is not specified or notes didn't match any workstation name, put on 1st station
+      const matchesAnyOtherWs = visibleWorkstations.some((otherWs, idx) => {
+        if (idx === wsIndex) return false;
+        const otherWord = otherWs.split(" ")[0];
+        return apt.notes && (apt.notes.includes(otherWord) || apt.notes.includes(otherWs));
+      });
+
+      return !matchesAnyOtherWs && wsIndex === 0;
     });
   };
 
@@ -193,8 +217,8 @@ export default function CalendarView({ appointments, customWorkstations, onSelec
                     <td className="p-3 text-center text-xs font-bold text-slate-400 border-r border-slate-200 bg-slate-50/30">
                       {hourFormatted}
                     </td>
-                    {visibleWorkstations.map((ws) => {
-                      const matchedApts = getAppointmentForSlot(ws, hour);
+                    {visibleWorkstations.map((ws, wsIdx) => {
+                      const matchedApts = getAppointmentForSlot(ws, hour, wsIdx);
                       return (
                         <td
                           key={ws}

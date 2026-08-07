@@ -408,7 +408,14 @@ export default function PublicBusinessProfilePage() {
                     targetDate.setDate(targetDate.getDate() + selectedDayOffset);
                     const dateStr = targetDate.toISOString().split("T")[0];
 
-                    return slot.available ? (
+                    const now = new Date();
+                    const [slotH, slotM] = slot.time.split(":").map(Number);
+                    const isPastTime =
+                      selectedDayOffset === 0 &&
+                      (slotH < now.getHours() || (slotH === now.getHours() && slotM <= now.getMinutes()));
+                    const isAvailable = slot.available && !isPastTime;
+
+                    return isAvailable ? (
                       <Link
                         key={i}
                         href={`/book/${tenant.slug}?date=${dateStr}&time=${slot.time}`}
@@ -423,7 +430,7 @@ export default function PublicBusinessProfilePage() {
                         className="p-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 text-center font-bold text-xs opacity-60 flex flex-col items-center justify-center cursor-not-allowed"
                       >
                         <span className="font-mono text-xs line-through">{slot.time}</span>
-                        <span className="text-[9px] text-rose-500 font-semibold">Dolu</span>
+                        <span className="text-[9px] text-rose-500 font-semibold">{isPastTime ? "Geçmiş Saat" : "Dolu"}</span>
                       </div>
                     );
                   })}
