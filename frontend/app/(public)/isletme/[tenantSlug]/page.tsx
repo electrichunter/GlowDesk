@@ -41,10 +41,14 @@ interface StaffItem {
   title?: string;
 }
 
+import { getSectorAsset } from "@/lib/sector-assets";
+
 export default function PublicBusinessProfilePage() {
   const params = useParams();
   const router = useRouter();
   const tenantSlug = (params?.tenantSlug as string) || "demo-salon";
+
+  const sectorAsset = getSectorAsset(tenantSlug);
 
   const [loading, setLoading] = useState(true);
   const [tenant, setTenant] = useState<PublicTenantProfile | null>(null);
@@ -61,6 +65,7 @@ export default function PublicBusinessProfilePage() {
         if (resTenant.data) {
           setTenant(resTenant.data);
           const tId = resTenant.data.id;
+          const currentSectorAsset = getSectorAsset(resTenant.data.sector || tenantSlug);
 
           // 2. Fetch Services
           const resServices = await apiRequest<ServiceItem[]>(`/services/public/${tId}`);
@@ -76,12 +81,7 @@ export default function PublicBusinessProfilePage() {
               }))
             );
           } else {
-            setServices([
-              { id: "s-1", name: "Saç Kesim & Şekillendirme", price: 450, duration_minutes: 45, category: "Saç Hizmetleri" },
-              { id: "s-2", name: "Profesyonel Manikür & Pedikür", price: 550, duration_minutes: 60, category: "Tırnak & Bakım" },
-              { id: "s-3", name: "Medikal Cilt Bakımı & Serum", price: 850, duration_minutes: 90, category: "Cilt Bakımı" },
-              { id: "s-4", name: "Saç Boyama & Ombré Seansı", price: 1800, duration_minutes: 120, category: "Saç Hizmetleri" },
-            ]);
+            setServices(currentSectorAsset.defaultServices);
           }
 
           // 3. Fetch Staff
@@ -89,11 +89,7 @@ export default function PublicBusinessProfilePage() {
           if (resStaff.data && Array.isArray(resStaff.data) && resStaff.data.length > 0) {
             setStaffList(resStaff.data);
           } else {
-            setStaffList([
-              { id: "st-1", fullName: "Elif Demir", role: "staff", title: "Baş Kuaför & Hair Stylist" },
-              { id: "st-2", fullName: "Ahmet Yılmaz", role: "staff", title: "Cilt & Estetik Uzmanı" },
-              { id: "st-3", fullName: "Zeynep Kaya", role: "staff", title: "Manikür & Tırnak Sanatçısı" },
-            ]);
+            setStaffList(currentSectorAsset.defaultStaff);
           }
         }
       } catch (err) {
@@ -134,14 +130,11 @@ export default function PublicBusinessProfilePage() {
     );
   }
 
+  const activeSectorAsset = getSectorAsset(tenant.sector || tenantSlug);
+
   const galleryList = tenant.gallery_images && tenant.gallery_images.length > 0
     ? tenant.gallery_images
-    : [
-        "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80",
-      ];
+    : activeSectorAsset.galleryImages;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans selection:bg-blue-600 selection:text-white">
@@ -154,7 +147,7 @@ export default function PublicBusinessProfilePage() {
           {/* Cover Photo */}
           <div className="h-64 sm:h-96 w-full overflow-hidden bg-slate-900 relative">
             <img
-              src={tenant.cover_image || "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1400&q=80"}
+              src={tenant.cover_image || activeSectorAsset.coverImage}
               alt={tenant.name}
               className="w-full h-full object-cover opacity-90"
             />
@@ -169,7 +162,7 @@ export default function PublicBusinessProfilePage() {
                 {/* Logo Badge */}
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-slate-100 shrink-0">
                   <img
-                    src={tenant.logo_url || "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=300&q=80"}
+                    src={tenant.logo_url || activeSectorAsset.logoImage}
                     alt={`${tenant.name} Logo`}
                     className="w-full h-full object-cover"
                   />
@@ -177,8 +170,9 @@ export default function PublicBusinessProfilePage() {
 
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 rounded-full bg-blue-50 text-[#0066FF] border border-blue-200 text-xs font-extrabold uppercase">
-                      💄 Güzellik & Bakım
+                    <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase border flex items-center gap-1 ${activeSectorAsset.badgeBg}`}>
+                      <span>{activeSectorAsset.icon}</span>
+                      <span>{activeSectorAsset.label}</span>
                     </span>
                     <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1">
                       <span>🟢</span> <span>Şimdi Açık (09:00 - 20:00)</span>

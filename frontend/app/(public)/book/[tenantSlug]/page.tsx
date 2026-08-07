@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { apiRequest } from "@/lib/api-client";
+import { getSectorAsset } from "@/lib/sector-assets";
 
 interface ServiceItem {
   id: string;
@@ -141,17 +141,13 @@ export default function SelfBookingPage() {
             }))
           );
         } else {
-          // Fallback initial service for new tenants
-          setServices([
-            {
-              id: `svc-demo-${tData.id}`,
+          const currentSectorAsset = getSectorAsset(tData.sector || tenantSlug);
+          setServices(
+            currentSectorAsset.defaultServices.map((ds) => ({
+              ...ds,
               tenant_id: tData.id,
-              name: `${tData.name} — Standart Seans & Hizmet`,
-              price: 500,
-              duration_minutes: 45,
-              description: "Hizmet detayları işletme tarafından ayarlanacaktır.",
-            },
-          ]);
+            }))
+          );
         }
 
         // 3. Fetch Real Staff for this specific Tenant from DB
@@ -159,9 +155,8 @@ export default function SelfBookingPage() {
         if (resStaff.data && Array.isArray(resStaff.data) && resStaff.data.length > 0) {
           setStaffList(resStaff.data);
         } else {
-          setStaffList([
-            { id: "staff-any", fullName: `${tData.name} Uzman Kadrosu`, role: "staff" }
-          ]);
+          const currentSectorAsset = getSectorAsset(tData.sector || tenantSlug);
+          setStaffList(currentSectorAsset.defaultStaff);
         }
 
       } catch (err) {
