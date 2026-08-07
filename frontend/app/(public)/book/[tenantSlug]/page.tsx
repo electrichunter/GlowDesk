@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { getSectorAsset } from "@/lib/sector-assets";
+import { apiRequest } from "@/lib/api-client";
 
 interface ServiceItem {
   id: string;
@@ -45,7 +46,11 @@ const TIME_SLOTS = [
 export default function SelfBookingPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const tenantSlug = (params?.tenantSlug as string) || "demo-salon";
+
+  const paramDate = searchParams?.get("date");
+  const paramTime = searchParams?.get("time");
 
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [loading, setLoading] = useState(true);
@@ -58,9 +63,9 @@ export default function SelfBookingPage() {
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("any");
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    paramDate || new Date().toISOString().split("T")[0]
   );
-  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>(paramTime || "");
   const [paymentOption, setPaymentOption] = useState<"on_site" | "deposit">("on_site");
 
   // Customer Contact Info

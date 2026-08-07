@@ -16,6 +16,7 @@ export default function AppointmentsPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewType, setViewType] = useState<"list" | "calendar">("calendar");
+  const [timeScope, setTimeScope] = useState<"upcoming" | "past" | "all">("upcoming");
   const [statusFilter, setStatusFilter] = useState<"all" | AppointmentStatus>("all");
   const [staffFilter, setStaffFilter] = useState<string>("all");
 
@@ -186,10 +187,33 @@ export default function AppointmentsPage() {
     }
   };
 
+  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+
+  const upcomingCount = useMemo(() => {
+    return appointments.filter((a) => {
+      const d = a.start_time ? a.start_time.split("T")[0] : todayStr;
+      return d >= todayStr;
+    }).length;
+  }, [appointments, todayStr]);
+
+  const pastCount = useMemo(() => {
+    return appointments.filter((a) => {
+      const d = a.start_time ? a.start_time.split("T")[0] : todayStr;
+      return d < todayStr;
+    }).length;
+  }, [appointments, todayStr]);
+
   const filteredAppointments = appointments.filter((a) => {
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
     const matchesStaff = staffFilter === "all" || a.notes?.includes(staffFilter);
-    return matchesStatus && matchesStaff;
+    const aptDate = a.start_time ? a.start_time.split("T")[0] : todayStr;
+
+    const matchesTimeScope =
+      timeScope === "all" ? true :
+      timeScope === "upcoming" ? aptDate >= todayStr :
+      aptDate < todayStr;
+
+    return matchesStatus && matchesStaff && matchesTimeScope;
   });
 
   return (
@@ -198,8 +222,8 @@ export default function AppointmentsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-[#1E1B4B]">Personel & Koltuk Yönetim Paneli</h1>
-          <p className="text-slate-500 text-xs mt-1">Personel ve koltuk bazında dinamik takvim, doluluk oranları ve seans takibi.</p>
+          <h1 className="text-2xl font-extrabold font-display text-[#1E1B4B]">Personel &amp; Koltuk Yönetim Paneli</h1>
+          <p className="text-slate-500 text-xs mt-1">Geçmiş ve gelecek randevularınızı tarih, personel ve durum bazında takip edin.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex bg-slate-200/70 p-1 rounded-xl">
@@ -248,13 +272,62 @@ export default function AppointmentsPage() {
         })}
       </div>
 
-      {/* Randevu Filtreleme Barı */}
-      <div className="brand-card p-4 space-y-3 bg-white">
+      {/* Randevu Zaman & Durum Filtreleme Barı */}
+      <div className="brand-card p-4 space-y-4 bg-white">
+        
+        {/* ÜST ZAMAN FİLTRESİ (Gelecek / Geçmiş / Tüm Zamanlar) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-extrabold text-[#1E1B4B] uppercase tracking-wider">Zaman Dilimi:</span>
+            <div className="flex gap-1.5 bg-slate-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setTimeScope("upcoming")}
+                className={`px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition-all ${
+                  timeScope === "upcoming"
+                    ? "bg-[#0066FF] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                🔮 Gelecek Randevular ({upcomingCount})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTimeScope("past")}
+                className={`px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition-all ${
+                  timeScope === "past"
+                    ? "bg-slate-800 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                📜 Geçmiş Randevular ({pastCount})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTimeScope("all")}
+                className={`px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition-all ${
+                  timeScope === "all"
+                    ? "bg-indigo-900 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                📅 Tüm Zamanlar ({appointments.length})
+              </button>
+            </div>
+          </div>
+
+          <span className="text-xs text-slate-500 font-medium">
+            Gösterilen: <strong className="text-slate-900">{filteredAppointments.length}</strong> randevu
+          </span>
+        </div>
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           {/* Status Filters */}
           <div className="flex gap-2 flex-wrap">
             {[
-              { key: "all", label: `Tümü (${appointments.length})` },
+              { key: "all", label: `Tüm Durumlar (${appointments.length})` },
               { key: "confirmed", label: `Onaylandı (${appointments.filter(a => a.status === "confirmed").length})` },
               { key: "pending", label: `Bekliyor (${appointments.filter(a => a.status === "pending").length})` },
               { key: "completed", label: `Tamamlandı (${appointments.filter(a => a.status === "completed").length})` },

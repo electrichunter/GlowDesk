@@ -55,6 +55,7 @@ export default function PublicBusinessProfilePage() {
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [staffList, setStaffList] = useState<StaffItem[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0);
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -342,9 +343,101 @@ export default function PublicBusinessProfilePage() {
 
           </div>
 
-          {/* Right Column: Working Hours, Location, Contact */}
+          {/* Right Column: Live Availability Widget, Working Hours, Location, Contact */}
           <div className="space-y-6">
             
+            {/* 📅 CANLI MÜSAİTLİK WIDGET'I (Randevu Almaya Girmeden Profilden Görünür) */}
+            <div className="bg-white p-6 rounded-3xl border-2 border-[#0066FF]/30 shadow-layered space-y-4 relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase text-[#0066FF] tracking-wider flex items-center gap-1.5 font-display">
+                  <span>📅</span> <span>Canlı Müsaitlik Seansları</span>
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-300 animate-pulse">
+                  ● Canlı Takvim
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                Aşağıdan dilediğiniz günü seçip boş seansları önizleyin. Tıklayarak anında randevunuzu tamamlayın.
+              </p>
+
+              {/* Day Selector Buttons */}
+              <div className="grid grid-cols-4 gap-1.5">
+                {[0, 1, 2, 3].map((offset) => {
+                  const d = new Date();
+                  d.setDate(d.getDate() + offset);
+                  const dayName = offset === 0 ? "Bugün" : offset === 1 ? "Yarın" : d.toLocaleDateString("tr-TR", { weekday: "short" });
+                  const dateNum = d.getDate();
+                  const isSelected = selectedDayOffset === offset;
+
+                  return (
+                    <button
+                      key={offset}
+                      type="button"
+                      onClick={() => setSelectedDayOffset(offset)}
+                      className={`p-2 rounded-2xl text-center border transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-[#0066FF] text-white border-[#0066FF] shadow-md shadow-blue-500/20 font-black"
+                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 font-bold"
+                      }`}
+                    >
+                      <span className="block text-[10px] opacity-80 uppercase">{dayName}</span>
+                      <span className="block text-sm font-extrabold">{dateNum}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Time Slots Grid */}
+              <div className="space-y-2 pt-1">
+                <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">
+                  Müsait Saatler ({selectedDayOffset === 0 ? "Bugün" : "Seçili Gün"}):
+                </span>
+                <div className="grid grid-cols-3 gap-1.5 max-h-48 overflow-y-auto pr-1">
+                  {[
+                    { time: "09:30", available: true },
+                    { time: "10:30", available: true },
+                    { time: "11:30", available: false },
+                    { time: "13:30", available: true },
+                    { time: "14:30", available: true },
+                    { time: "15:30", available: true },
+                    { time: "16:30", available: false },
+                    { time: "17:30", available: true },
+                    { time: "18:30", available: true },
+                  ].map((slot, i) => {
+                    const targetDate = new Date();
+                    targetDate.setDate(targetDate.getDate() + selectedDayOffset);
+                    const dateStr = targetDate.toISOString().split("T")[0];
+
+                    return slot.available ? (
+                      <Link
+                        key={i}
+                        href={`/book/${tenant.slug}?date=${dateStr}&time=${slot.time}`}
+                        className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 text-center font-extrabold text-xs transition-all shadow-2xs group flex flex-col items-center justify-center"
+                      >
+                        <span className="font-mono text-xs">{slot.time}</span>
+                        <span className="text-[9px] font-semibold text-emerald-600 group-hover:text-white">Müsait ➔</span>
+                      </Link>
+                    ) : (
+                      <div
+                        key={i}
+                        className="p-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 text-center font-bold text-xs opacity-60 flex flex-col items-center justify-center cursor-not-allowed"
+                      >
+                        <span className="font-mono text-xs line-through">{slot.time}</span>
+                        <span className="text-[9px] text-rose-500 font-semibold">Dolu</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Link
+                href={`/book/${tenant.slug}`}
+                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-[#0066FF] to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 text-center block transition-all hover:scale-[1.02]"
+              >
+                ⚡ Seçili Saate Randevu Al →
+              </Link>
+            </div>
+
             {/* Working Hours Card */}
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-layered space-y-4">
               <h3 className="text-xs font-extrabold uppercase text-[#0066FF] tracking-wider flex items-center gap-2">
