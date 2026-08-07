@@ -13,6 +13,7 @@ import { SkeletonCard, SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useTenant } from "@/contexts/TenantContext";
 import PlanFeatureGate from "@/components/dashboard/PlanFeatureGate";
+import DashboardAppointmentFlow from "@/components/dashboard/DashboardAppointmentFlow";
 
 export default function DashboardPage() {
   const { activePlan, planConfig, openUpgradeModal, hasFeature, verticalConfig } = useTenant();
@@ -351,45 +352,19 @@ export default function DashboardPage() {
       {/* ── BENTO DÜZENİ (Sol: Randevular, Sağ: Canlı POS Kasa & Bot) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Sol 8 Sütun: Randevular */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-            <h2 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest font-display">
-              Bugünkü Randevu Akışı
-            </h2>
-            <span className="text-xs text-[#0066FF] font-extrabold bg-blue-50 px-3 py-1 rounded-full border border-blue-200/80">
-              {businessName}
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {loading ? (
-              <SkeletonTable />
-            ) : appointments.length > 0 ? (
-              appointments.map((apt) => (
-                <div key={apt.id} className="relative group">
-                  <AppointmentCard
-                    appointment={apt}
-                    onUpdateStatus={handleUpdateStatus}
-                  />
-                  {apt.status === "confirmed" && (
-                    <button
-                      onClick={() => handleOpenPosModal(apt)}
-                      className="absolute top-4 right-28 bg-[#0066FF] hover:bg-blue-700 text-white text-[11px] font-extrabold px-3.5 py-1.5 rounded-xl transition-all shadow-md"
-                    >
-                      💳 Adisyon Kes
-                    </button>
-                  )}
-                </div>
-              ))
-            ) : (
-              <EmptyState
-                icon="👋"
-                title="Henüz Randevu Bulunmuyor"
-                description="İşletmeniz başarıyla açıldı! Müşterileriniz online randevu aldıkça veya 'Randevu Takvimi' sayfasından yeni kayıt ekledikçe randevularınız burada görünecek."
-              />
-            )}
-          </div>
+        {/* Sol 8 Sütun: Randevu Akışı & Canlı Takvim */}
+        <div className="lg:col-span-8">
+          {loading ? (
+            <SkeletonTable />
+          ) : (
+            <DashboardAppointmentFlow
+              appointments={appointments}
+              onUpdateStatus={handleUpdateStatus}
+              onOpenPosModal={handleOpenPosModal}
+              businessName={businessName}
+              verticalConfig={verticalConfig}
+            />
+          )}
         </div>
 
         {/* Sağ 4 Sütun: POS Kasa Özeti & Akıllı Bot Kartı */}
