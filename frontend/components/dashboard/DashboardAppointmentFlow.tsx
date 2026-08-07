@@ -124,14 +124,14 @@ export default function DashboardAppointmentFlow({
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-base font-extrabold text-slate-900 font-display uppercase tracking-wider">
-              📅 Randevu Akışı &amp; Canlı Takvim
+              BUGÜNKÜ &amp; GENEL RANDEVU AKIŞI
             </h2>
             <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0066FF] border border-blue-200 text-[10px] font-black">
-              {filteredAppointments.length} Kayıt
+              {filteredAppointments.length} Randevu
             </span>
           </div>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            İstediğiniz tarihi seçerek geçmiş ve gelecek tüm müşteri randevularını yönetin.
+            Tarih seçici ile dilediğiniz günün, geçmişin veya geleceğin randevularını filtreleyin.
           </p>
         </div>
 
